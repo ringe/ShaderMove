@@ -1,0 +1,7 @@
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\ShaderMove.exe
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\ShaderMove.pdb
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\ResolveAssemblyReference.cache
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\ShaderMove.exe
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\ShaderMove.pdb
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\Content\MinEffekt2.xnb
