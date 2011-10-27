@@ -1,4 +1,5 @@
 /ShaderMove/ShaderMove/*Debug*
-/ShaderMove/ShaderMove/bin/*
-/ShaderMove/ShaderMove/obj/*
-/ShaderMove/ShaderMoveContent/obj/*
+/ShaderMove/ShaderMove/bin
+/ShaderMove/ShaderMove/obj
+/ShaderMove/ShaderMoveContent/obj
+/ShaderMove/ShaderMoveContent/bin

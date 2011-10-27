@@ -12,9 +12,6 @@ struct VertexShaderInput
     float4 Position : POSITION0;
 	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
-
-    // TODO: add input channels such as texture
-    // coordinates and vertex colors here.
 };
 
 struct VertexShaderOutput
@@ -22,10 +19,6 @@ struct VertexShaderOutput
     float4 Position : POSITION0;
 	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
-
-    // TODO: add vertex shader outputs such as colors and texture
-    // coordinates here. These values will automatically be interpolated
-    // over the triangle, and provided as input to your pixel shader.
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -55,9 +48,9 @@ float4 SetColor(float4 inn) {
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    //return SetColor(input.Color);
-	//return input.Color;
-	return tex2D(ColorTextureSampler, input.TexCoord);
+	float4 output = tex2D(ColorTextureSampler, input.TexCoord);
+	//output *= SetColor(input.Color);
+	return output;
 }
 
 technique Technique1
@@ -70,3 +63,4 @@ technique Technique1
         PixelShader = compile ps_2_0 PixelShaderFunction();
     }
 }
+
