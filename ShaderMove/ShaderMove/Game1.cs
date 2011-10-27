@@ -46,6 +46,7 @@ namespace ShaderMove
         GraphicsDeviceManager graphics;
         private ContentManager content;
         SpriteBatch spriteBatch;
+        SpriteFont spriteFont;
 
         // Vertices
         VertexPositionColorTexture[] cubeVertices;
@@ -55,7 +56,6 @@ namespace ShaderMove
         VertexPositionColor[] zAxis = new VertexPositionColor[2];
 
         // Textures
-        private EffectParameter effectTexture;
         Texture2D texture1;
         Texture2D texture2;
 
@@ -69,12 +69,12 @@ namespace ShaderMove
         private float mfRed = 0f;
         private bool mbRedIncrease = true;
 
-        //WVP-matrisene:
+        // WVP-matrisene:
         private Matrix world;
         private Matrix projection;
         private Matrix view;
 
-        //Kameraposisjon:
+        // Kameraposisjon:
         private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
@@ -83,8 +83,22 @@ namespace ShaderMove
         private const float BOUNDARY = 80.0f;
         private const float EDGE = BOUNDARY * 2.0f;
 
+        // Rotationfactor
+        float orbRotY;
+
+        // Speed in world units per ms.
+        private float speed = 0.02f;
+        float elapsedTime;
+
+        // FPS calculation
+        TimeSpan fpsTime = TimeSpan.Zero;
+        int frameRate = 0;
+        int frameCounter = 0;
+
+        #region initialize
         public Game1()
         {
+            this.IsFixedTimeStep = false;
             graphics = new GraphicsDeviceManager(this);
             content = new ContentManager(this.Services);
         }
@@ -112,14 +126,15 @@ namespace ShaderMove
         private void InitDevice()
         {
 
-            graphics.PreferredBackBufferWidth = 1200;
-            graphics.PreferredBackBufferHeight = 800;
+            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 600;
             graphics.IsFullScreen = false;
             graphics.ApplyChanges();
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp; 
+
 
             Window.Title = "Move!";
         }
-
 
         /// <summary>
         /// Position the camera.
@@ -140,6 +155,7 @@ namespace ShaderMove
             //effect.View = view;
 
         }
+        #endregion
 
         /// <summary>
         /// Prepare the object vertices
@@ -155,31 +171,49 @@ namespace ShaderMove
             zAxis[1] = new VertexPositionColor(new Vector3(0f, 0f, 100.0f), Color.Black);
 
             // Initialize a Cube
+            float min = 0.001f; float max = 0.999f;
             cubeVertices = new VertexPositionColorTexture[8]
             {
-                new VertexPositionColorTexture(new Vector3(-1,  1,  1), Color.Blue, new Vector2(0,1)),
-                new VertexPositionColorTexture(new Vector3( 1,  1,  1), Color.Blue, new Vector2(0,0)),
-                new VertexPositionColorTexture(new Vector3(-1, -1,  1), Color.Red, new Vector2(1,1)),
-                new VertexPositionColorTexture(new Vector3(1, -1,  1), Color.Red, new Vector2(1,0)),
-                new VertexPositionColorTexture(new Vector3(-1, -1, -1), Color.Green, new Vector2(0,1)),
-                new VertexPositionColorTexture(new Vector3(1, -1, -1), Color.Green, new Vector2(0,0)),
-                new VertexPositionColorTexture(new Vector3(-1,  1, -1), Color.Yellow, new Vector2(1,1)),
-                new VertexPositionColorTexture(new Vector3(1,  1, -1), Color.Yellow, new Vector2(1,0))
+                new VertexPositionColorTexture(new Vector3(-1,  1,  1),
+                    Color.Blue, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3( 1,  1,  1),
+                    Color.Blue, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1, -1,  1),
+                    Color.Red, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(1, -1,  1),
+                    Color.Red, new Vector2(max,min)),
+                new VertexPositionColorTexture(new Vector3(-1, -1, -1),
+                    Color.Green, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3(1, -1, -1),
+                    Color.Green, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1,  1, -1),
+                    Color.Yellow, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(1,  1, -1),
+                    Color.Yellow, new Vector2(max,min))
             };
             cubeVertices2 = new VertexPositionColorTexture[8]
             {
-                new VertexPositionColorTexture(new Vector3(1, -1, -1), Color.Green, new Vector2(0,1)),
-                new VertexPositionColorTexture(new Vector3(1, -1,  1), Color.Red, new Vector2(0,0)),
-                new VertexPositionColorTexture(new Vector3(1,  1, -1), Color.Yellow, new Vector2(1,1)),
-                new VertexPositionColorTexture(new Vector3( 1,  1,  1), Color.Blue, new Vector2(1,0)),
-                new VertexPositionColorTexture(new Vector3(-1,  1, -1), Color.Yellow, new Vector2(0,1)),
-                new VertexPositionColorTexture(new Vector3(-1,  1,  1), Color.Blue, new Vector2(0,0)),
-                new VertexPositionColorTexture(new Vector3(-1, -1, -1), Color.Green, new Vector2(1,1)),
-                new VertexPositionColorTexture(new Vector3(-1, -1,  1), Color.Red, new Vector2(1,0))
+                new VertexPositionColorTexture(new Vector3(1, -1, -1),
+                    Color.Green, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3(1, -1,  1),
+                    Color.Red, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(1,  1, -1),
+                    Color.Yellow, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3( 1,  1,  1),
+                    Color.Blue, new Vector2(max,min)),
+                new VertexPositionColorTexture(new Vector3(-1,  1, -1),
+                    Color.Yellow, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3(-1,  1,  1),
+                    Color.Blue, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1, -1, -1),
+                    Color.Green, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(-1, -1,  1),
+                    Color.Red, new Vector2(max,min))
             };
 
         }
 
+        #region content
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -188,6 +222,7 @@ namespace ShaderMove
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
             //Initialize Effect
             try
@@ -197,9 +232,8 @@ namespace ShaderMove
                 effectView = effect.Parameters["View"];
                 effectProjection = effect.Parameters["Projection"];
 
-                //effectRed = effect.Parameters["fx_Red"];
+                effectRed = effect.Parameters["fx_Red"];
                 //effectPos = effect.Parameters["fx_Pos"];
-                //effectWVP = effect.Parameters["fx_WVP"];
 
                 // Load textures
                 texture1 = Content.Load<Texture2D>(@"Content/wla240077");
@@ -211,8 +245,6 @@ namespace ShaderMove
                 MessageBox(new IntPtr(0), cle.Message, "Utilgivelig feil...", 0);
                 this.Exit();
             }
-
-            
         }
 
         /// <summary>
@@ -223,7 +255,9 @@ namespace ShaderMove
         {
             // TODO: Unload any non ContentManager content here
         }
+        #endregion
 
+        #region update
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -236,9 +270,27 @@ namespace ShaderMove
                 this.Exit();
 
             HandleKeyboardInput();
-            //SetPos(gameTime);
+            SetPos(gameTime);
+
+            // Time elapsed since the last call to update.
+            elapsedTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            fpsCalc(gameTime);
 
             base.Update(gameTime);
+        }
+
+        // FPS calculation
+        void fpsCalc(GameTime gameTime)
+        {
+            fpsTime += gameTime.ElapsedGameTime;
+
+            if (fpsTime > TimeSpan.FromSeconds(1))
+            {
+                fpsTime -= TimeSpan.FromSeconds(1);
+                frameRate = frameCounter;
+                frameCounter = 0;
+            }
         }
 
         void SetPos(GameTime gameTime)
@@ -252,9 +304,10 @@ namespace ShaderMove
             else if (mfRed >= 1.0f)
                 mbRedIncrease = false;
 
-            effectPos.SetValue(mfRed);
+            //effectPos.SetValue(mfRed);
             effectRed.SetValue(mfRed);
         }
+        #endregion
 
         #region input
         /// <summary>
@@ -302,21 +355,36 @@ namespace ShaderMove
             }
         }
 
+        private void DrawOverlayText(string text, int x, int y)
+        {
+            spriteBatch.Begin();
+            //Skriver teksten to ganger, først med svart bakgrunn og deretter med  hvitt, en piksel ned og til venstre, slik at teksten blir mer lesbar.
+            spriteBatch.DrawString(spriteFont, text, new Vector2(x, y), Color.Black);
+            spriteBatch.DrawString(spriteFont, text, new Vector2(x - 1, y - 1), Color.White);
+            spriteBatch.End();
+            //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.RasterizerState = RasterizerState.CullNone; //Avhenger av hva du ønsker
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
+        } 
+
         private void DrawCube(VertexPositionColorTexture[] cube, Texture2D texture)
         {
-            Matrix scale;
+            Matrix matIdentify = Matrix.Identity;
+            Matrix scale, cubeTrans, orbRotatY;
 
             Matrix.CreateScale(0.5f, 0.5f, 0.5f, out scale);
 
-            // Set rotation according to the movement angle
-            //rotatY = Matrix.CreateRotationY(speedAngle);
+            cubeTrans = Matrix.CreateTranslation(2f, 0f, -2f);
 
-            // Set translation to current position
-            //move = Matrix.CreateTranslation(position);
+            // Make the moon orbit the earth
+            orbRotatY = Matrix.CreateRotationY(orbRotY);
+            orbRotY += (elapsedTime * speed) / 50f;
+            orbRotY = orbRotY % (float)(2 * Math.PI);
 
-            //plane.Push(scale * rotatY * move);
-
-            //world = Matrix.Identity * plane.Peek();
+            world = matIdentify * orbRotatY;
+            //world = matIdentify * scale * cubeTrans * orbRotatY;
 
             GraphicsDevice.Textures[0] = texture;
             //GraphicsDevice.Textures[1] = texture1;
@@ -355,13 +423,6 @@ namespace ShaderMove
             //Setter world=I:
             world = Matrix.Identity;
 
-            //Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(world));
-            //effect.Parameters["WorldInverseTranspose"].SetValue(worldInverseTransposeMatrix);
-
-            // Setter world-matrisa på effect-objektet (verteks-shaderen):
-            //effect.World = world;
-
-            //effectWVP.SetValue(world * view * projection);
             effectWorld.SetValue(world);
             effectView.SetValue(view);
             effectProjection.SetValue(projection);
@@ -369,6 +430,10 @@ namespace ShaderMove
             //DrawAxis();
             DrawCube(cubeVertices, texture1);
             DrawCube(cubeVertices2, texture2);
+
+            // Count frames and show FPS
+            frameCounter++;
+            DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
 
             base.Draw(gameTime);
         }
