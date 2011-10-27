@@ -5,10 +5,13 @@ float4x4 Projection;
 float fx_Red;
 float fx_Pos;
 
+sampler ColorTextureSampler : register(s0);
+
 struct VertexShaderInput
 {
     float4 Position : POSITION0;
 	float4 Color : COLOR0;
+	float2 TexCoord : TEXCOORD0;
 
     // TODO: add input channels such as texture
     // coordinates and vertex colors here.
@@ -18,6 +21,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
 	float4 Color : COLOR0;
+	float2 TexCoord : TEXCOORD0;
 
     // TODO: add vertex shader outputs such as colors and texture
     // coordinates here. These values will automatically be interpolated
@@ -33,6 +37,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     float4 viewPosition = mul(worldPosition, View);
     output.Position = mul(viewPosition, Projection);
 	output.Color = input.Color;
+	output.TexCoord = input.TexCoord;
 
     return output;
 }
@@ -50,7 +55,9 @@ float4 SetColor(float4 inn) {
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    return SetColor(input.Color);
+    //return SetColor(input.Color);
+	//return input.Color;
+	return tex2D(ColorTextureSampler, input.TexCoord);
 }
 
 technique Technique1

@@ -16,16 +16,22 @@ namespace ShaderMove
     {
         private Vector3 position;
         private Color color;
+        private Vector2 texcoord;
+        private Vector3 normal;
 
-        public MittVerteksFormat(Vector3 position, Color color)
+        public MittVerteksFormat(Vector3 position, Color color, Vector2 texcoord, Vector3 normal)
         {
             this.position = position;
             this.color = color;
+            this.texcoord = texcoord;
+            this.normal = normal;
         }
 
         public readonly static VertexDeclaration VertexDeclaration = new VertexDeclaration(
             new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
-            new VertexElement(sizeof(float) * 3, VertexElementFormat.Color, VertexElementUsage.Color, 0)
+            new VertexElement(sizeof(float) * 3, VertexElementFormat.Color, VertexElementUsage.Color, 0),
+            new VertexElement(sizeof(float) * 3, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
+            new VertexElement(sizeof(float) * 4, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0)
         );
     }
 
@@ -42,10 +48,16 @@ namespace ShaderMove
         SpriteBatch spriteBatch;
 
         // Vertices
-        VertexPositionColor[] cubeVertices;
+        VertexPositionColorTexture[] cubeVertices;
+        VertexPositionColorTexture[] cubeVertices2;
         VertexPositionColor[] xAxis = new VertexPositionColor[2];
         VertexPositionColor[] yAxis = new VertexPositionColor[2];
         VertexPositionColor[] zAxis = new VertexPositionColor[2];
+
+        // Textures
+        private EffectParameter effectTexture;
+        Texture2D texture1;
+        Texture2D texture2;
 
         // Shaderstuff
         private Effect effect;
@@ -63,9 +75,13 @@ namespace ShaderMove
         private Matrix view;
 
         //Kameraposisjon:
-        private Vector3 cameraPosition = new Vector3(4f, 3f, 7f);
+        private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+
+        // Boundaries
+        private const float BOUNDARY = 80.0f;
+        private const float EDGE = BOUNDARY * 2.0f;
 
         public Game1()
         {
@@ -102,28 +118,6 @@ namespace ShaderMove
             graphics.ApplyChanges();
 
             Window.Title = "Move!";
-
-            //effect = new BasicEffect(GraphicsDevice);
-
-            //effect.VertexColorEnabled = true;
-
-            //Initialize Effect
-            try
-            {
-                effect = Content.Load<Effect>(@"Content/MinEffekt2");
-                effectWorld = effect.Parameters["World"];
-                effectView = effect.Parameters["View"];
-                effectProjection = effect.Parameters["Projection"];
-
-                effectRed = effect.Parameters["fx_Red"];
-                effectPos = effect.Parameters["fx_Pos"];
-                //effectWVP = effect.Parameters["fx_WVP"];
-            }
-            catch (ContentLoadException cle)
-            {
-                MessageBox(new IntPtr(0), cle.Message, "Utilgivelig feil...", 0);
-                this.Exit();
-            }
         }
 
 
@@ -161,26 +155,29 @@ namespace ShaderMove
             zAxis[1] = new VertexPositionColor(new Vector3(0f, 0f, 100.0f), Color.Black);
 
             // Initialize a Cube
-            cubeVertices = new VertexPositionColor[17]
+            cubeVertices = new VertexPositionColorTexture[8]
             {
-                new VertexPositionColor(new Vector3(-1,  1,  1), Color.Red),
-                new VertexPositionColor(new Vector3( 1,  1,  1), Color.Red),
-                new VertexPositionColor(new Vector3(-1, -1,  1), Color.Red),
-                new VertexPositionColor(new Vector3(1, -1,  1), Color.Red),
-                new VertexPositionColor(new Vector3(-1, -1, -1), Color.Green),
-                new VertexPositionColor(new Vector3(1, -1, -1), Color.Green),
-                new VertexPositionColor(new Vector3(-1,  1, -1), Color.Yellow),
-                new VertexPositionColor(new Vector3(1,  1, -1), Color.Yellow),
-                new VertexPositionColor(new Vector3(-1,  1,  1), Color.Green),
-                new VertexPositionColor(new Vector3(1,  1,  1), Color.Green),
-                new VertexPositionColor(new Vector3(1, -1,  1), Color.Blue),
-                new VertexPositionColor(new Vector3(1,  1, -1), Color.Blue),
-                new VertexPositionColor(new Vector3(1, -1, -1), Color.Orange),
-                new VertexPositionColor(new Vector3(-1, -1, -1), Color.Orange),
-                new VertexPositionColor(new Vector3(-1,  1, -1), Color.Pink),
-                new VertexPositionColor(new Vector3(-1, -1,  1), Color.Pink),
-                new VertexPositionColor(new Vector3(-1,  1,  1), Color.Yellow)
+                new VertexPositionColorTexture(new Vector3(-1,  1,  1), Color.Blue, new Vector2(0,1)),
+                new VertexPositionColorTexture(new Vector3( 1,  1,  1), Color.Blue, new Vector2(0,0)),
+                new VertexPositionColorTexture(new Vector3(-1, -1,  1), Color.Red, new Vector2(1,1)),
+                new VertexPositionColorTexture(new Vector3(1, -1,  1), Color.Red, new Vector2(1,0)),
+                new VertexPositionColorTexture(new Vector3(-1, -1, -1), Color.Green, new Vector2(0,1)),
+                new VertexPositionColorTexture(new Vector3(1, -1, -1), Color.Green, new Vector2(0,0)),
+                new VertexPositionColorTexture(new Vector3(-1,  1, -1), Color.Yellow, new Vector2(1,1)),
+                new VertexPositionColorTexture(new Vector3(1,  1, -1), Color.Yellow, new Vector2(1,0))
             };
+            cubeVertices2 = new VertexPositionColorTexture[8]
+            {
+                new VertexPositionColorTexture(new Vector3(1, -1, -1), Color.Green, new Vector2(0,1)),
+                new VertexPositionColorTexture(new Vector3(1, -1,  1), Color.Red, new Vector2(0,0)),
+                new VertexPositionColorTexture(new Vector3(1,  1, -1), Color.Yellow, new Vector2(1,1)),
+                new VertexPositionColorTexture(new Vector3( 1,  1,  1), Color.Blue, new Vector2(1,0)),
+                new VertexPositionColorTexture(new Vector3(-1,  1, -1), Color.Yellow, new Vector2(0,1)),
+                new VertexPositionColorTexture(new Vector3(-1,  1,  1), Color.Blue, new Vector2(0,0)),
+                new VertexPositionColorTexture(new Vector3(-1, -1, -1), Color.Green, new Vector2(1,1)),
+                new VertexPositionColorTexture(new Vector3(-1, -1,  1), Color.Red, new Vector2(1,0))
+            };
+
         }
 
         /// <summary>
@@ -192,7 +189,30 @@ namespace ShaderMove
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            //Initialize Effect
+            try
+            {
+                effect = Content.Load<Effect>(@"Content/MinEffekt2");
+                effectWorld = effect.Parameters["World"];
+                effectView = effect.Parameters["View"];
+                effectProjection = effect.Parameters["Projection"];
+
+                //effectRed = effect.Parameters["fx_Red"];
+                //effectPos = effect.Parameters["fx_Pos"];
+                //effectWVP = effect.Parameters["fx_WVP"];
+
+                // Load textures
+                texture1 = Content.Load<Texture2D>(@"Content/wla240077");
+                texture2 = Content.Load<Texture2D>(@"Content/mta240029");
+                
+            }
+            catch (ContentLoadException cle)
+            {
+                MessageBox(new IntPtr(0), cle.Message, "Utilgivelig feil...", 0);
+                this.Exit();
+            }
+
+            
         }
 
         /// <summary>
@@ -216,7 +236,7 @@ namespace ShaderMove
                 this.Exit();
 
             HandleKeyboardInput();
-            SetPos(gameTime);
+            //SetPos(gameTime);
 
             base.Update(gameTime);
         }
@@ -282,9 +302,9 @@ namespace ShaderMove
             }
         }
 
-        private void DrawCube()
+        private void DrawCube(VertexPositionColorTexture[] cube, Texture2D texture)
         {
-            Matrix scale, rotatY, move;
+            Matrix scale;
 
             Matrix.CreateScale(0.5f, 0.5f, 0.5f, out scale);
 
@@ -298,6 +318,9 @@ namespace ShaderMove
 
             //world = Matrix.Identity * plane.Peek();
 
+            GraphicsDevice.Textures[0] = texture;
+            //GraphicsDevice.Textures[1] = texture1;
+
             //effect.World = world;
             //effectWVP.SetValue(world * view * projection);
             effectWorld.SetValue(world);
@@ -308,7 +331,10 @@ namespace ShaderMove
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices, 0, 15, MittVerteksFormat.VertexDeclaration);
+                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices, 0, 6, MittVerteksFormat.VertexDeclaration);
+                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices2, 0, 6, MittVerteksFormat.VertexDeclaration);
+                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cube, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices2, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             }
 
         }
@@ -341,7 +367,8 @@ namespace ShaderMove
             effectProjection.SetValue(projection);
 
             //DrawAxis();
-            DrawCube();
+            DrawCube(cubeVertices, texture1);
+            DrawCube(cubeVertices2, texture2);
 
             base.Draw(gameTime);
         }

@@ -5,3 +5,6 @@
 \\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\ShaderMove.exe
 \\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\obj\x86\Debug\ShaderMove.pdb
 \\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\Content\MinEffekt2.xnb
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\Content\wla240077.xnb
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\Content\ska24003.xnb
+\\taraldsvik\home$\310233\my documents\visual studio 2010\Projects\ShaderMove\ShaderMove\ShaderMove\bin\x86\Debug\Content\mta240029.xnb
