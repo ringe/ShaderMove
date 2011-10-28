@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System.Runtime.InteropServices;
+using ShaderLib;
 
 namespace ShaderMove
 {
@@ -47,6 +48,11 @@ namespace ShaderMove
         private ContentManager content;
         SpriteBatch spriteBatch;
         SpriteFont spriteFont;
+
+        // ShaderLib input and camera
+        private Input input;
+        //private Camera camera;
+        private FirstPersonCamera camera; 
 
         // Vertices
         VertexPositionColorTexture[] cubeVertices;
@@ -101,6 +107,14 @@ namespace ShaderMove
             this.IsFixedTimeStep = false;
             graphics = new GraphicsDeviceManager(this);
             content = new ContentManager(this.Services);
+
+            //Oppretter og tar i bruk input-handleren: 
+            input = new Input(this);
+            this.Components.Add(input);
+
+            //Legger til Camera: 
+            camera = new FirstPersonCamera(this);
+            this.Components.Add(camera);
         }
 
         /// <summary>
@@ -224,6 +238,8 @@ namespace ShaderMove
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
+            Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+
             //Initialize Effect
             try
             {
@@ -269,7 +285,6 @@ namespace ShaderMove
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
-            HandleKeyboardInput();
             SetPos(gameTime);
 
             // Time elapsed since the last call to update.
@@ -306,38 +321,6 @@ namespace ShaderMove
 
             //effectPos.SetValue(mfRed);
             effectRed.SetValue(mfRed);
-        }
-        #endregion
-
-        #region input
-        /// <summary>
-        /// React to key press
-        /// </summary>
-        private void HandleKeyboardInput()
-        {
-            KeyboardState keys = Keyboard.GetState();
-
-            // Determine change in direction
-            //if (keys.IsKeyDown(Keys.Left))
-            //    SetSpeed(false);
-            //else if (keys.IsKeyDown(Keys.Right))
-            //    SetSpeed(true);
-
-            //// Determine change in speed
-            //if (keys.IsKeyDown(Keys.Up))
-            //    movement = movement + movement * 0.02f;
-            //else if (keys.IsKeyDown(Keys.Down))
-            //    movement = movement - movement * 0.02f;
-
-            //// Determine change in direction up/down
-            //if (keys.IsKeyDown(Keys.W))
-            //    position.Y += 0.05f;
-            //else if (keys.IsKeyDown(Keys.S))
-            //    position.Y -= 0.05f;
-
-            // Exit
-            if (keys.IsKeyDown(Keys.Escape))
-                this.Exit();
         }
         #endregion
 
@@ -392,8 +375,8 @@ namespace ShaderMove
             //effect.World = world;
             //effectWVP.SetValue(world * view * projection);
             effectWorld.SetValue(world);
-            effectView.SetValue(view);
-            effectProjection.SetValue(projection);
+            effectView.SetValue(camera.View);
+            effectProjection.SetValue(camera.Projection);
 
             //Starter tegning
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
@@ -424,8 +407,8 @@ namespace ShaderMove
             world = Matrix.Identity;
 
             effectWorld.SetValue(world);
-            effectView.SetValue(view);
-            effectProjection.SetValue(projection);
+            effectView.SetValue(camera.View);
+            effectProjection.SetValue(camera.Projection);
 
             //DrawAxis();
             DrawCube(cubeVertices, texture1);

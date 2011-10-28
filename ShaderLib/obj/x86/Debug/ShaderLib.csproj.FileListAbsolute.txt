@@ -1,0 +1,6 @@
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\bin\x86\Debug\ShaderLib.dll
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\bin\x86\Debug\ShaderLib.pdb
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\obj\x86\Debug\ShaderLib.dll
+C:\Users\Runar\Documents\Visual Studio 2010\Projects\ShaderMove\ShaderLib\obj\x86\Debug\ShaderLib.pdb

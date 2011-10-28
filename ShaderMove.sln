@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderMove", "ShaderMove\ShaderMove\ShaderMove.csproj", "{65123322-FBF3-4CC1-946D-0AA003A4938E}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "ShaderMoveContent", "ShaderMove\ShaderMoveContent\ShaderMoveContent.contentproj", "{F9FC5780-CAAD-43B4-B6CC-5832DF0FCE60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderMoveContent", "ShaderMove\ShaderMoveContent\ShaderMoveContent.contentproj", "{F9FC5780-CAAD-43B4-B6CC-5832DF0FCE60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderLib", "ShaderLib\ShaderLib.csproj", "{3F9346BA-225B-451A-9DF7-FF905A597D6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,6 +19,10 @@ Global
 		{65123322-FBF3-4CC1-946D-0AA003A4938E}.Release|x86.Build.0 = Release|x86
 		{F9FC5780-CAAD-43B4-B6CC-5832DF0FCE60}.Debug|x86.ActiveCfg = Debug|x86
 		{F9FC5780-CAAD-43B4-B6CC-5832DF0FCE60}.Release|x86.ActiveCfg = Release|x86
+		{3F9346BA-225B-451A-9DF7-FF905A597D6B}.Debug|x86.ActiveCfg = Debug|x86
+		{3F9346BA-225B-451A-9DF7-FF905A597D6B}.Debug|x86.Build.0 = Debug|x86
+		{3F9346BA-225B-451A-9DF7-FF905A597D6B}.Release|x86.ActiveCfg = Release|x86
+		{3F9346BA-225B-451A-9DF7-FF905A597D6B}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
