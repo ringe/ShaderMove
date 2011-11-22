@@ -111,6 +111,10 @@ namespace ShaderMove
         private float speed = 0.02f;
         float elapsedTime;
 
+        // Sky dome
+        Texture2D cloudMap;
+        Model skyDome;
+
         // FPS calculation
         TimeSpan fpsTime = TimeSpan.Zero;
         int frameRate = 0;
@@ -341,6 +345,10 @@ namespace ShaderMove
             CalculateNormals();
             CopyToBuffers();
 
+            // Load skydome
+            skyDome = Content.Load<Model>(@"Content/dome");
+            cloudMap = Content.Load<Texture2D>(@"Content/cloudMap");
+            skyDome.Meshes[0].MeshParts[0].Effect = effect.Clone();
         }
 
         private void LoadHeightData(Texture2D heightMap)
@@ -522,6 +530,31 @@ namespace ShaderMove
             }
         }
 
+        //private void DrawSkyDome(Matrix currentViewMatrix)
+        //{
+        //    //GraphicsDevice.RenderState.DepthBufferWriteEnable = false;
+
+        //    Matrix[] modelTransforms = new Matrix[skyDome.Bones.Count];
+        //    skyDome.CopyAbsoluteBoneTransformsTo(modelTransforms);
+
+        //    Matrix wMatrix = Matrix.CreateTranslation(0, -0.3f, 0) * Matrix.CreateScale(100) * Matrix.CreateTranslation(cameraPosition);
+        //    foreach (ModelMesh mesh in skyDome.Meshes)
+        //    {
+        //        foreach (Effect currentEffect in mesh.Effects)
+        //        {
+        //            Matrix worldMatrix = modelTransforms[mesh.ParentBone.Index] * wMatrix;
+        //            currentEffect.CurrentTechnique = currentEffect.Techniques["SkyDome"];
+        //            currentEffect.Parameters["xWorld"].SetValue(worldMatrix);
+        //            currentEffect.Parameters["xView"].SetValue(currentViewMatrix);
+        //            currentEffect.Parameters["xProjection"].SetValue(camera.Projection);
+        //            currentEffect.Parameters["xTexture0"].SetValue(cloudMap);
+        //            currentEffect.Parameters["xEnableLighting"].SetValue(false);
+        //        }
+        //        mesh.Draw();
+        //    }
+        //    //GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
+        //}
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -539,6 +572,7 @@ namespace ShaderMove
             world = Matrix.Identity;
 
             DrawTerrain();
+            //DrawSkyDome(camera.View);
             //DrawAxis();
             //DrawCube(cubeVertices, texture1);
             //DrawCube(cubeVertices2, texture2);
