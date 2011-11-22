@@ -111,9 +111,8 @@ namespace ShaderMove
         private float speed = 0.02f;
         float elapsedTime;
 
-        // Sky dome
-        Texture2D cloudMap;
-        Model skyDome;
+        // Models
+        Model fish;
 
         // FPS calculation
         TimeSpan fpsTime = TimeSpan.Zero;
@@ -124,6 +123,8 @@ namespace ShaderMove
         private float[,] heightData;
         private int[] terrainIndices;
         private VertexPositionColorNormal[] terrainVertices;
+        private Effect effect2;
+        private Matrix[] fishMatrix;
 
         #region initialize
         public Game1()
@@ -335,6 +336,10 @@ namespace ShaderMove
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
 
             effect = Content.Load<Effect>(@"Content/effects");
+            effect2 = Content.Load<Effect>(@"Content/MinEffekt2");
+            effectWorld = effect2.Parameters["World"];
+            effectProjection = effect2.Parameters["Projection"];
+            effectView = effect2.Parameters["View"];
 
             // Load heightmap
             Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
@@ -345,10 +350,12 @@ namespace ShaderMove
             CalculateNormals();
             CopyToBuffers();
 
-            // Load skydome
-            skyDome = Content.Load<Model>(@"Content/dome");
-            cloudMap = Content.Load<Texture2D>(@"Content/cloudMap");
-            skyDome.Meshes[0].MeshParts[0].Effect = effect.Clone();
+            // Load models
+            fish = content.Load<Model>(@"Content\Sheephead0");
+            fishMatrix = new Matrix[fish.Bones.Count];
+            fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
+
+            texture1 = content.Load<Texture2D>(@"Content\cloudMap");
         }
 
         private void LoadHeightData(Texture2D heightMap)
@@ -463,26 +470,19 @@ namespace ShaderMove
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.RasterizerState = RasterizerState.CullNone; //Avhenger av hva du ønsker
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
-        } 
+        }
 
         private void DrawCube(VertexPositionColorTexture[] cube, Texture2D texture)
         {
             Matrix matIdentify = Matrix.Identity;
-            Matrix scale, cubeTrans, orbRotatY;
+            Matrix scale;
 
-            Matrix.CreateScale(0.5f, 0.5f, 0.5f, out scale);
+            Matrix.CreateScale(terrainWidth, terrainHeight, terrainWidth, out scale);
+            Matrix matCam = Matrix.CreateTranslation(camera.CameraPosition.X, 0.0f, camera.CameraPosition.Z);
 
-            cubeTrans = Matrix.CreateTranslation(2f, 0f, -2f);
+            world = matIdentify * scale * matCam;
 
-            // Make the moon orbit the earth
-            orbRotatY = Matrix.CreateRotationY(orbRotY);
-            orbRotY += (elapsedTime * speed) / 50f;
-            orbRotY = orbRotY % (float)(2 * Math.PI);
-
-            world = matIdentify *orbRotatY;
-            //world = matIdentify * scale * cubeTrans * orbRotatY;
-
-            GraphicsDevice.Textures[0] = texture;
+            GraphicsDevice.Textures[0] = texture1;
             //GraphicsDevice.Textures[1] = texture1;
 
             //effect.World = world;
@@ -492,7 +492,7 @@ namespace ShaderMove
             effectProjection.SetValue(camera.Projection);
 
             //Starter tegning
-            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in effect2.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices, 0, 6, MittVerteksFormat.VertexDeclaration);
@@ -530,30 +530,41 @@ namespace ShaderMove
             }
         }
 
-        //private void DrawSkyDome(Matrix currentViewMatrix)
-        //{
-        //    //GraphicsDevice.RenderState.DepthBufferWriteEnable = false;
+        public void DrawFish()
+        {
+            Matrix world = Matrix.Identity;
+            effectWorld.SetValue(world);
+            effectView.SetValue(camera.View);
+            effectProjection.SetValue(camera.Projection);
 
-        //    Matrix[] modelTransforms = new Matrix[skyDome.Bones.Count];
-        //    skyDome.CopyAbsoluteBoneTransformsTo(modelTransforms);
 
-        //    Matrix wMatrix = Matrix.CreateTranslation(0, -0.3f, 0) * Matrix.CreateScale(100) * Matrix.CreateTranslation(cameraPosition);
-        //    foreach (ModelMesh mesh in skyDome.Meshes)
-        //    {
-        //        foreach (Effect currentEffect in mesh.Effects)
-        //        {
-        //            Matrix worldMatrix = modelTransforms[mesh.ParentBone.Index] * wMatrix;
-        //            currentEffect.CurrentTechnique = currentEffect.Techniques["SkyDome"];
-        //            currentEffect.Parameters["xWorld"].SetValue(worldMatrix);
-        //            currentEffect.Parameters["xView"].SetValue(currentViewMatrix);
-        //            currentEffect.Parameters["xProjection"].SetValue(camera.Projection);
-        //            currentEffect.Parameters["xTexture0"].SetValue(cloudMap);
-        //            currentEffect.Parameters["xEnableLighting"].SetValue(false);
-        //        }
-        //        mesh.Draw();
-        //    }
-        //    //GraphicsDevice.RenderState.DepthBufferWriteEnable = true;
-        //}
+            Matrix scale, trans, rotation;
+
+            float m = (float)(Math.PI*6/4);
+            Matrix.CreateRotationY(m, out rotation);
+
+            Matrix.CreateScale(5, 5, 5, out scale);
+            trans = Matrix.CreateTranslation(camera.CameraPosition.X, camera.CameraPosition.Y -1.5f, camera.CameraPosition.Z-3.5f);
+            //Matrix[] matriseTabell = new Matrix[fish.Bones.Count];
+            //fish.CopyAbsoluteBoneTransformsTo(matriseTabell);
+
+            foreach (ModelMesh mesh in fish.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.World = fishMatrix[mesh.ParentBone.Index] * scale * rotation * trans;
+                    effect.View = camera.View;
+                    effect.Projection = camera.Projection;
+                    effect.EnableDefaultLighting();
+                    effect.LightingEnabled = true;
+                    //effectWorld.SetValue(fishMatrix[mesh.ParentBone.Index]);
+                    //effectView.SetValue(camera.View);
+                    //effectProjection.SetValue(camera.Projection);
+                    //pass.Apply();
+                }
+                mesh.Draw();
+            }
+        }
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -574,8 +585,10 @@ namespace ShaderMove
             DrawTerrain();
             //DrawSkyDome(camera.View);
             //DrawAxis();
-            //DrawCube(cubeVertices, texture1);
-            //DrawCube(cubeVertices2, texture2);
+            DrawCube(cubeVertices, texture1);
+            DrawCube(cubeVertices2, texture2);
+
+            DrawFish();
 
             // Count frames and show FPS
             frameCounter++;

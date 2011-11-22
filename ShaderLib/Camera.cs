@@ -46,6 +46,11 @@ namespace ShaderLib
             set { projection = value; }
         }
 
+        public Vector3 CameraPosition
+        {
+            get { return cameraPosition; }
+        }
+
         public Camera(Game game)
             : base(game)
         {
