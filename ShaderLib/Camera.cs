@@ -19,12 +19,13 @@ namespace ShaderLib
         //En referanse til input-komponenten: 
         protected IInputHandler input;
         private const float moveRate = 20.0f;      // for FirstPersonCamra. 
-        protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera. 
+        protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
+        protected float[,] heightData; // for FirstPersonCamera
 
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
-        private Vector3 cameraPosition = new Vector3(0.0f, 0.0f, 3.0f);
+        private Vector3 cameraPosition = new Vector3(80.0f, 20.0f, 80.0f);
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = Vector3.Up;
         private Vector3 cameraReference = new Vector3(0.0f, 0.0f, -1.0f);
@@ -122,6 +123,10 @@ namespace ShaderLib
                 //Oppdaterer kameraposisjonen med move-vektoren:  
                 cameraPosition += movement;
             }
+
+            // Setter posisjonen til bakkenivå
+            if (heightData != null)
+                cameraPosition.Y = heightData[(int)cameraPosition.X, (int)cameraPosition.Z];
 
             // Oppretter en vektor som peker i retninga kameraet 'ser': 
             Vector3 transformedReference;

@@ -96,9 +96,9 @@ namespace ShaderMove
         //private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
         //private Vector3 cameraTarget = Vector3.Zero;
         //private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
-        private Vector3 cameraPosition = new Vector3(60, 80, -80);
-        private Vector3 cameraTarget = new Vector3(0, 0, 0);
-        private Vector3 cameraUpVector = new Vector3(0, 1, 0);
+        private Vector3 cameraPosition;// = new Vector3(60, 80, -80);
+        private Vector3 cameraTarget;// = new Vector3(0, 0, 0);
+        private Vector3 cameraUpVector;// = new Vector3(0, 1, 0);
 
         // Boundaries
         private const float BOUNDARY = 80.0f;
@@ -175,6 +175,7 @@ namespace ShaderMove
         /// </summary>
         private void InitCamera()
         {
+
             //Projeksjon:
             float aspectRatio = (float)graphics.GraphicsDevice.Viewport.Width / (float)graphics.GraphicsDevice.Viewport.Height;
 
@@ -354,6 +355,8 @@ namespace ShaderMove
             for (int x = 0; x < terrainWidth; x++)
                 for (int y = 0; y < terrainHeight; y++)
                     heightData[x, y] = heightMapColors[x + y * terrainWidth].R / 5.0f;
+
+            camera.setHeight(ref heightData);
         }
 
         /// <summary>
@@ -382,6 +385,8 @@ namespace ShaderMove
             elapsedTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             fpsCalc(gameTime);
+
+            
 
             base.Update(gameTime);
         }
