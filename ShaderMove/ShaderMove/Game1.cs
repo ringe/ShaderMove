@@ -44,10 +44,26 @@ namespace ShaderMove
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern uint MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
+        public struct VertexPositionColorNormal
+        {
+            public Vector3 Position;
+            public Color Color;
+            public Vector3 Normal;
+
+            public readonly static VertexDeclaration VertexDeclaration = new VertexDeclaration
+            (
+                new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+                new VertexElement(sizeof(float) * 3, VertexElementFormat.Color, VertexElementUsage.Color, 0),
+                new VertexElement(sizeof(float) * 3 + 4, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0)
+            );
+        }
+
         GraphicsDeviceManager graphics;
         private ContentManager content;
         SpriteBatch spriteBatch;
         SpriteFont spriteFont;
+        VertexBuffer myVertexBuffer;
+        IndexBuffer myIndexBuffer;
 
         // ShaderLib input and camera
         private Input input;
@@ -81,9 +97,12 @@ namespace ShaderMove
         private Matrix view;
 
         // Kameraposisjon:
-        private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
-        private Vector3 cameraTarget = Vector3.Zero;
-        private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+        //private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
+        //private Vector3 cameraTarget = Vector3.Zero;
+        //private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+        private Vector3 cameraPosition = new Vector3(60, 80, -80);
+        private Vector3 cameraTarget = new Vector3(0, 0, 0);
+        private Vector3 cameraUpVector = new Vector3(0, 1, 0);
 
         // Boundaries
         private const float BOUNDARY = 80.0f;
@@ -100,6 +119,11 @@ namespace ShaderMove
         TimeSpan fpsTime = TimeSpan.Zero;
         int frameRate = 0;
         int frameCounter = 0;
+        private int terrainWidth = 4;
+        private int terrainHeight = 3;
+        private float[,] heightData;
+        private int[] terrainIndices;
+        private VertexPositionColorNormal[] terrainVertices;
 
         #region initialize
         public Game1()
@@ -227,6 +251,74 @@ namespace ShaderMove
 
         }
 
+        private void SetUpVertices()
+        {
+
+            float minHeight = float.MaxValue;
+            float maxHeight = float.MinValue;
+            for (int x = 0; x < terrainWidth; x++)
+            {
+                for (int y = 0; y < terrainHeight; y++)
+                {
+                    if (heightData[x, y] < minHeight)
+                        minHeight = heightData[x, y];
+                    if (heightData[x, y] > maxHeight)
+                        maxHeight = heightData[x, y];
+                }
+            }
+
+            terrainVertices = new VertexPositionColorNormal[terrainWidth * terrainHeight];
+            for (int x = 0; x < terrainWidth; x++)
+            {
+                for (int y = 0; y < terrainHeight; y++)
+                {
+                    terrainVertices[x + y * terrainWidth].Position = new Vector3(x, heightData[x, y], -y);
+
+                    if (heightData[x, y] < minHeight + (maxHeight - minHeight) / 4)
+                        terrainVertices[x + y * terrainWidth].Color = Color.Blue;
+                    else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 2 / 4)
+                        terrainVertices[x + y * terrainWidth].Color = Color.Green;
+                    else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 3 / 4)
+                        terrainVertices[x + y * terrainWidth].Color = Color.Brown;
+                    else
+                        terrainVertices[x + y * terrainWidth].Color = Color.White;
+                }
+            }
+        }
+
+        private void SetUpIndices()
+        {
+            terrainIndices = new int[(terrainWidth - 1) * (terrainHeight - 1) * 6];
+            int counter = 0;
+            for (int y = 0; y < terrainHeight - 1; y++)
+            {
+                for (int x = 0; x < terrainWidth - 1; x++)
+                {
+                    int lowerLeft = x + y * terrainWidth;
+                    int lowerRight = (x + 1) + y * terrainWidth;
+                    int topLeft = x + (y + 1) * terrainWidth;
+                    int topRight = (x + 1) + (y + 1) * terrainWidth;
+
+                    terrainIndices[counter++] = topLeft;
+                    terrainIndices[counter++] = lowerRight;
+                    terrainIndices[counter++] = lowerLeft;
+
+                    terrainIndices[counter++] = topLeft;
+                    terrainIndices[counter++] = topRight;
+                    terrainIndices[counter++] = lowerRight;
+                }
+            }
+        }
+
+        private void CopyToBuffers()
+        {
+            myVertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColorNormal.VertexDeclaration, terrainVertices.Length, BufferUsage.WriteOnly);
+            myVertexBuffer.SetData(terrainVertices);
+
+            myIndexBuffer = new IndexBuffer(GraphicsDevice, typeof(int), terrainIndices.Length, BufferUsage.WriteOnly);
+            myIndexBuffer.SetData(terrainIndices);
+        }
+
         #region content
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
@@ -238,29 +330,34 @@ namespace ShaderMove
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
+            // Position mouse at the center of the game window
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
 
-            //Initialize Effect
-            try
-            {
-                effect = Content.Load<Effect>(@"Content/MinEffekt2");
-                effectWorld = effect.Parameters["World"];
-                effectView = effect.Parameters["View"];
-                effectProjection = effect.Parameters["Projection"];
+            effect = Content.Load<Effect>(@"Content/effects");
 
-                effectRed = effect.Parameters["fx_Red"];
-                //effectPos = effect.Parameters["fx_Pos"];
+            // Load heightmap
+            Texture2D heightMap = Content.Load<Texture2D>(@"Content/heightmap");
+            LoadHeightData(heightMap);
 
-                // Load textures
-                texture1 = Content.Load<Texture2D>(@"Content/wla240077");
-                texture2 = Content.Load<Texture2D>(@"Content/mta240029");
-                
-            }
-            catch (ContentLoadException cle)
-            {
-                MessageBox(new IntPtr(0), cle.Message, "Utilgivelig feil...", 0);
-                this.Exit();
-            }
+            SetUpVertices();
+            SetUpIndices();
+            CalculateNormals();
+            CopyToBuffers();
+
+        }
+
+        private void LoadHeightData(Texture2D heightMap)
+        {
+            terrainWidth = heightMap.Width;
+            terrainHeight = heightMap.Height;
+
+            Color[] heightMapColors = new Color[terrainWidth * terrainHeight];
+            heightMap.GetData(heightMapColors);
+
+            heightData = new float[terrainWidth, terrainHeight];
+            for (int x = 0; x < terrainWidth; x++)
+                for (int y = 0; y < terrainHeight; y++)
+                    heightData[x, y] = heightMapColors[x + y * terrainWidth].R / 5.0f;
         }
 
         /// <summary>
@@ -320,7 +417,31 @@ namespace ShaderMove
                 mbRedIncrease = false;
 
             //effectPos.SetValue(mfRed);
-            effectRed.SetValue(mfRed);
+            //effectRed.SetValue(mfRed);
+        }
+
+        private void CalculateNormals()
+        {
+            for (int i = 0; i < terrainVertices.Length; i++)
+                terrainVertices[i].Normal = new Vector3(0, 0, 0);
+
+            for (int i = 0; i < terrainIndices.Length / 3; i++)
+            {
+                int index1 = terrainIndices[i * 3];
+                int index2 = terrainIndices[i * 3 + 1];
+                int index3 = terrainIndices[i * 3 + 2];
+
+                Vector3 side1 = terrainVertices[index1].Position - terrainVertices[index3].Position;
+                Vector3 side2 = terrainVertices[index1].Position - terrainVertices[index2].Position;
+                Vector3 normal = Vector3.Cross(side1, side2);
+
+                terrainVertices[index1].Normal += normal;
+                terrainVertices[index2].Normal += normal;
+                terrainVertices[index3].Normal += normal;
+            }
+
+            for (int i = 0; i < terrainVertices.Length; i++)
+                terrainVertices[i].Normal.Normalize();
         }
         #endregion
 
@@ -366,7 +487,7 @@ namespace ShaderMove
             orbRotY += (elapsedTime * speed) / 50f;
             orbRotY = orbRotY % (float)(2 * Math.PI);
 
-            world = matIdentify * orbRotatY;
+            world = matIdentify *orbRotatY;
             //world = matIdentify * scale * cubeTrans * orbRotatY;
 
             GraphicsDevice.Textures[0] = texture;
@@ -390,6 +511,33 @@ namespace ShaderMove
 
         }
 
+        public void DrawTerrain()
+        {
+            Matrix matIdentify = Matrix.Identity;
+            Matrix translate = Matrix.CreateTranslation(-terrainWidth / 2.0f, 0, terrainHeight / 2.0f);
+
+            world = matIdentify * translate;
+
+            effect.CurrentTechnique = effect.Techniques["Colored"];
+            effect.Parameters["xView"].SetValue(camera.View);
+            effect.Parameters["xProjection"].SetValue(camera.Projection);
+            effect.Parameters["xWorld"].SetValue(world);
+            Vector3 lightDirection = new Vector3(1.0f, -1.0f, -1.0f);
+            lightDirection.Normalize();
+            effect.Parameters["xLightDirection"].SetValue(lightDirection);
+            effect.Parameters["xAmbient"].SetValue(0.1f);
+            effect.Parameters["xEnableLighting"].SetValue(true);
+
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                //GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, terrainVertices, 0, terrainVertices.Length, terrainIndices, 0, terrainIndices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
+                GraphicsDevice.Indices = myIndexBuffer;
+                GraphicsDevice.SetVertexBuffer(myVertexBuffer);
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, terrainVertices.Length, 0, terrainIndices.Length / 3);
+            }
+        }
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -406,13 +554,10 @@ namespace ShaderMove
             //Setter world=I:
             world = Matrix.Identity;
 
-            effectWorld.SetValue(world);
-            effectView.SetValue(camera.View);
-            effectProjection.SetValue(camera.Projection);
-
+            DrawTerrain();
             //DrawAxis();
-            DrawCube(cubeVertices, texture1);
-            DrawCube(cubeVertices2, texture2);
+            //DrawCube(cubeVertices, texture1);
+            //DrawCube(cubeVertices2, texture2);
 
             // Count frames and show FPS
             frameCounter++;
