@@ -83,13 +83,9 @@ namespace ShaderMove
 
         // Shaderstuff
         private Effect effect;
-        private EffectParameter effectRed;
-        private EffectParameter effectPos;
         private EffectParameter effectWorld;
         private EffectParameter effectView;
         private EffectParameter effectProjection;
-        private float mfRed = 0f;
-        private bool mbRedIncrease = true;
 
         // WVP-matrisene:
         private Matrix world;
@@ -336,7 +332,7 @@ namespace ShaderMove
             effect = Content.Load<Effect>(@"Content/effects");
 
             // Load heightmap
-            Texture2D heightMap = Content.Load<Texture2D>(@"Content/heightmap");
+            Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
             LoadHeightData(heightMap);
 
             SetUpVertices();
@@ -382,8 +378,6 @@ namespace ShaderMove
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
-            SetPos(gameTime);
-
             // Time elapsed since the last call to update.
             elapsedTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
@@ -403,21 +397,6 @@ namespace ShaderMove
                 frameRate = frameCounter;
                 frameCounter = 0;
             }
-        }
-
-        void SetPos(GameTime gameTime)
-        {
-            if (mbRedIncrease)
-                mfRed += (float)gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
-            else
-                mfRed -= (float)gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
-            if (mfRed <= 0.0f)
-                mbRedIncrease = true;
-            else if (mfRed >= 1.0f)
-                mbRedIncrease = false;
-
-            //effectPos.SetValue(mfRed);
-            //effectRed.SetValue(mfRed);
         }
 
         private void CalculateNormals()
