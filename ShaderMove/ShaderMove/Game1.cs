@@ -73,6 +73,7 @@ namespace ShaderMove
         // Vertices
         VertexPositionColorTexture[] cubeVertices;
         VertexPositionColorTexture[] cubeVertices2;
+        VertexPositionColorTexture[] waterVertices;
         VertexPositionColor[] xAxis = new VertexPositionColor[2];
         VertexPositionColor[] yAxis = new VertexPositionColor[2];
         VertexPositionColor[] zAxis = new VertexPositionColor[2];
@@ -80,12 +81,15 @@ namespace ShaderMove
         // Textures
         Texture2D texture1;
         Texture2D texture2;
+        Texture2D texture3;
 
         // Shaderstuff
         private Effect effect;
         private EffectParameter effectWorld;
         private EffectParameter effectView;
         private EffectParameter effectProjection;
+        private EffectParameter effectPos;
+        private bool posIncrease = true;
 
         // WVP-matrisene:
         private Matrix world;
@@ -108,7 +112,7 @@ namespace ShaderMove
         float orbRotY;
 
         // Speed in world units per ms.
-        private float speed = 0.02f;
+        private float speed = 0.04f;
         float elapsedTime;
 
         // Models
@@ -125,6 +129,12 @@ namespace ShaderMove
         private VertexPositionColorNormal[] terrainVertices;
         private Effect effect2;
         private Matrix[] fishMatrix;
+        private EffectParameter effectAlpha;
+        private Effect waterEffect;
+        private float mfRed;
+        private EffectParameter effectWaterWorld;
+        private EffectParameter effectWaterProjection;
+        private EffectParameter effectWaterView;
 
         #region initialize
         public Game1()
@@ -251,6 +261,20 @@ namespace ShaderMove
                     Color.Red, new Vector2(max,min))
             };
 
+            //To trekanter
+
+            waterVertices = new VertexPositionColorTexture[4]
+            {
+            new VertexPositionColorTexture(new Vector3(-1,  1.5f,  -1),
+                    Color.Blue, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3( 1,  1.5f,  -1),
+                    Color.Blue, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1, 1.5f,  1),
+                    Color.Red, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(1, 1.5f,  1),
+                    Color.Red, new Vector2(max,min))
+            };
+           
         }
 
         private void SetUpVertices()
@@ -337,9 +361,15 @@ namespace ShaderMove
 
             effect = Content.Load<Effect>(@"Content/effects");
             effect2 = Content.Load<Effect>(@"Content/MinEffekt2");
+            waterEffect = Content.Load<Effect>(@"Content/waterEffectt");
             effectWorld = effect2.Parameters["World"];
             effectProjection = effect2.Parameters["Projection"];
             effectView = effect2.Parameters["View"];
+            effectAlpha = waterEffect.Parameters["fx_Alpha"];
+            effectWaterWorld = waterEffect.Parameters["World"];
+            effectWaterProjection = waterEffect.Parameters["Projection"];
+            effectWaterView = waterEffect.Parameters["View"];
+            effectPos = waterEffect.Parameters["fx_Pos"];
 
             // Load heightmap
             Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
@@ -356,6 +386,7 @@ namespace ShaderMove
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
+            texture3 = content.Load<Texture2D>(@"Content\water_normal");
         }
 
         private void LoadHeightData(Texture2D heightMap)
@@ -371,7 +402,7 @@ namespace ShaderMove
                 for (int y = 0; y < terrainHeight; y++)
                     heightData[x, y] = heightMapColors[x + y * terrainWidth].R / 5.0f;
 
-            camera.setHeight(ref heightData);
+            //camera.setHeight(ref heightData);
         }
 
         /// <summary>
@@ -400,11 +431,19 @@ namespace ShaderMove
             elapsedTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             fpsCalc(gameTime);
-
-            
+            SetPos(gameTime);
 
             base.Update(gameTime);
         }
+
+        void SetPos(GameTime gameTime)
+        {
+            if (mfRed > 2)
+                mfRed = 0;
+
+            mfRed += (float)gameTime.ElapsedGameTime.Milliseconds / 10000.0f;
+
+       }
 
         // FPS calculation
         void fpsCalc(GameTime gameTime)
@@ -490,7 +529,7 @@ namespace ShaderMove
             effectWorld.SetValue(world);
             effectView.SetValue(camera.View);
             effectProjection.SetValue(camera.Projection);
-
+            effectAlpha.SetValue(1f);
             //Starter tegning
             foreach (EffectPass pass in effect2.CurrentTechnique.Passes)
             {
@@ -503,10 +542,61 @@ namespace ShaderMove
 
         }
 
+        protected void DrawWater(VertexPositionColorTexture[] water, Texture2D texture)
+        {
+            for (int i = 0; i <= 2; i++)
+            {
+                effectPos.SetValue(mfRed-((i-1)*2));
+
+                GraphicsDevice.Textures[0] = texture3;
+
+                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+
+                BlendState bs = new BlendState();
+                //bs.AlphaSourceBlend = Blend.DestinationAlpha;
+                //bs.AlphaDestinationBlend = Blend.SourceAlpha;
+                bs.ColorSourceBlend = Blend.DestinationColor;
+                bs.ColorDestinationBlend = Blend.SourceColor;
+                bs.AlphaBlendFunction = BlendFunction.Add;
+                GraphicsDevice.BlendState = bs;
+                GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+                effectWaterWorld.SetValue(world);
+                effectWaterView.SetValue(camera.View);
+                effectWaterProjection.SetValue(camera.Projection);
+                effectAlpha.SetValue(0.5f);
+                Indices = new int[6] { 0, 1, 2, 2, 1, 3 };
+
+
+                Matrix matIdentify = Matrix.Identity;
+                Matrix scale;
+
+                Matrix.CreateScale(terrainWidth, terrainHeight / 10, terrainWidth, out scale);
+                Matrix matCam = Matrix.CreateTranslation(camera.CameraPosition.X, 0.0f, camera.CameraPosition.Z);
+
+                world = matIdentify * scale * matCam;
+                //Starter tegning - må bruke effect-objektet:
+                foreach (EffectPass pass in waterEffect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    // Angir primitivtype, aktuelle vertekser, en offsetverdi og antall 
+                    //  primitiver (her 1 siden verteksene beskriver en tredekant):
+                    GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList, water, 0, 4, Indices, 0, 2);
+
+
+                }
+            }
+            
+            GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+        }
+
         public void DrawTerrain()
         {
             Matrix matIdentify = Matrix.Identity;
+            // Sentrer terreng i origo
             Matrix translate = Matrix.CreateTranslation(-terrainWidth / 2.0f, 0, terrainHeight / 2.0f);
+
 
             world = matIdentify * translate;
 
@@ -548,6 +638,8 @@ namespace ShaderMove
             //Matrix[] matriseTabell = new Matrix[fish.Bones.Count];
             //fish.CopyAbsoluteBoneTransformsTo(matriseTabell);
 
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
             foreach (ModelMesh mesh in fish.Meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
@@ -564,6 +656,7 @@ namespace ShaderMove
                 }
                 mesh.Draw();
             }
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
         /// <summary>
@@ -581,8 +674,7 @@ namespace ShaderMove
 
             //Setter world=I:
             world = Matrix.Identity;
-
-            DrawTerrain();
+            
             //DrawSkyDome(camera.View);
             //DrawAxis();
             DrawCube(cubeVertices, texture1);
@@ -594,7 +686,14 @@ namespace ShaderMove
             frameCounter++;
             DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
 
+            DrawTerrain();
+            DrawWater(waterVertices, texture2);
+
+
+
             base.Draw(gameTime);
         }
+
+        public int[] Indices { get; set; }
     }
 }

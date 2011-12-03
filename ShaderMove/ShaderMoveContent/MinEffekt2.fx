@@ -4,6 +4,7 @@ float4x4 Projection;
 
 float fx_Red;
 float fx_Pos;
+float fx_Alpha;
 
 sampler ColorTextureSampler : register(s0);
 
@@ -38,10 +39,10 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 SetColor(float4 inn) {
 	float4 f4color;
 
-	f4color.r = fx_Red;
-	f4color.g = inn.g / fx_Red;
-	f4color.b = inn.b / fx_Red;
-	f4color.a = 1.0f;
+	f4color.r = inn.r;
+	f4color.g = inn.g;
+	f4color.b = inn.b;
+	f4color.a = fx_Alpha;
 
 	return f4color;
 }
@@ -49,7 +50,7 @@ float4 SetColor(float4 inn) {
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 output = tex2D(ColorTextureSampler, input.TexCoord);
-	//output *= SetColor(input.Color);
+	//output * SetColor(input.Color);
 	return output;
 }
 
