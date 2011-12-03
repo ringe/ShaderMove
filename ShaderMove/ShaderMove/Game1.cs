@@ -135,6 +135,7 @@ namespace ShaderMove
         private EffectParameter effectWaterWorld;
         private EffectParameter effectWaterProjection;
         private EffectParameter effectWaterView;
+        private PrelightingRenderer renderer;
 
         #region initialize
         public Game1()
@@ -379,6 +380,20 @@ namespace ShaderMove
             SetUpIndices();
             CalculateNormals();
             CopyToBuffers();
+
+            // Load caustics
+            Texture2D causticMap = Content.Load<Texture2D>(@"Content/Caustic");
+            Caustics caustics = new Caustics(causticMap, GraphicsDevice);
+            caustics.ProjectorPosition = new Vector3(0, 450, 450);
+            caustics.ProjectorTarget = new Vector3(0, 0, 0);
+            caustics.Scale = 2;
+            renderer = new PrelightingRenderer(GraphicsDevice, Content);
+            renderer.Models = Player;
+            renderer.Camera = camera;
+            renderer.Lights = new List<PPPointLight>() {
+                new PPPointLight(new Vector3(-1000, 1000, 0), Color.Red * .85f, 2000),
+                new PPPointLight(new Vector3(1000, 1000, 0), Color.Blue * .85f, 2000),
+            };
 
             // Load models
             fish = content.Load<Model>(@"Content\Sheephead0");

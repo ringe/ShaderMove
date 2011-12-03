@@ -140,6 +140,21 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PPDepthNormal.fx">
+      <Name>PPDepthNormal</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+    <Compile Include="PPLight.fx">
+      <Name>PPLight</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+    <Compile Include="PPLightMesh.fbx">
+      <Name>PPLightMesh</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
     <None Include="PPShared.vsi">
       <Name>PPShared</Name>
     </None>
@@ -147,6 +162,18 @@
       <Name>waterEffectt</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
+    </Compile>
+    <Compile Include="ProjectedTexture.fx">
+      <Name>ProjectedTexture</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Caustic.jpg">
+      <Name>Caustic</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
