@@ -20,7 +20,7 @@ namespace ShaderLib
         public Caustics(Texture2D Texture,
             GraphicsDevice graphicsDevice)
         {
-            ProjectorPosition = new Vector3(1500, 1500, 1500);
+            ProjectorPosition = new Vector3(15, 15, 15);
             ProjectorTarget = new Vector3(0, 150, 0);
             ProjectorEnabled = true;
             ProjectedTexture = Texture;

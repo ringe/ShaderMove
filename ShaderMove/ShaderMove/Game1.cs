@@ -124,7 +124,6 @@ namespace ShaderMove
         private EffectParameter effectWaterWorld;
         private EffectParameter effectWaterProjection;
         private EffectParameter effectWaterView;
-        private PrelightingRenderer renderer;
 
         // Fish
         private Matrix[] fishMatrix;
@@ -372,30 +371,9 @@ namespace ShaderMove
             CalculateNormals();
             CopyToBuffers();
 
-            // Load models
-            fish = content.Load<Model>(@"Content\Sheephead0");
-            fishMatrix = new Matrix[fish.Bones.Count];
-            fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
+            // Load Player
             Player = new Fish(content, 5, new Vector3(76, 20 , 70 ));
             fishMatrix = new Matrix[Player.bones.Count];
-            // Load caustics
-            Texture2D causticMap = Content.Load<Texture2D>(@"Content/Caustic");
-            Caustics caustics = new Caustics(causticMap, GraphicsDevice);
-            caustics.ProjectorPosition = new Vector3(0, 450, 450);
-            caustics.ProjectorTarget = new Vector3(0, 0, 0);
-            caustics.Scale = 2;
-            renderer = new PrelightingRenderer(GraphicsDevice, Content);
-            renderer.Models = Player;
-            renderer.Camera = camera;
-            renderer.Lights = new List<PPPointLight>() {
-                new PPPointLight(new Vector3(-1000, 1000, 0), Color.Red * .85f, 2000),
-                new PPPointLight(new Vector3(1000, 1000, 0), Color.Blue * .85f, 2000),
-            };
-
-            // Load models
-            fish = content.Load<Model>(@"Content\Sheephead0");
-            fishMatrix = new Matrix[fish.Bones.Count];
-            fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
             texture3 = content.Load<Texture2D>(@"Content\water_normal");
