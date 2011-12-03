@@ -89,7 +89,6 @@ namespace ShaderMove
         private EffectParameter effectView;
         private EffectParameter effectProjection;
         private EffectParameter effectPos;
-        private bool posIncrease = true;
 
         // WVP-matrisene:
         private Matrix world;
@@ -97,9 +96,7 @@ namespace ShaderMove
         private Matrix view;
 
         // Kameraposisjon:
-        //private Vector3 cameraPosition = new Vector3(-5f, 2f, 4f);
-        //private Vector3 cameraTarget = Vector3.Zero;
-        //private Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+
         private Vector3 cameraPosition;// = new Vector3(60, 80, -80);
         private Vector3 cameraTarget;// = new Vector3(0, 0, 0);
         private Vector3 cameraUpVector;// = new Vector3(0, 1, 0);
@@ -108,15 +105,7 @@ namespace ShaderMove
         private const float BOUNDARY = 80.0f;
         private const float EDGE = BOUNDARY * 2.0f;
 
-        // Rotationfactor
-        float orbRotY;
-
-        // Speed in world units per ms.
-        private float speed = 0.04f;
         float elapsedTime;
-
-        // Models
-        Model fish;
 
         // FPS calculation
         TimeSpan fpsTime = TimeSpan.Zero;
@@ -128,7 +117,7 @@ namespace ShaderMove
         private int[] terrainIndices;
         private VertexPositionColorNormal[] terrainVertices;
         private Effect effect2;
-        private Matrix[] fishMatrix;
+
         private EffectParameter effectAlpha;
         private Effect waterEffect;
         private float mfRed;
@@ -136,6 +125,12 @@ namespace ShaderMove
         private EffectParameter effectWaterProjection;
         private EffectParameter effectWaterView;
         private PrelightingRenderer renderer;
+
+        // Fish
+        private Matrix[] fishMatrix;
+        private Fish Player;
+        private float animFactor;
+        private bool animUp;
 
         #region initialize
         public Game1()
@@ -200,10 +195,6 @@ namespace ShaderMove
 
             //Oppretter projeksjonsmatrisa:
             Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.01f, 1000.0f, out projection);
-
-            //Gir matrisene til shader:
-            //effect.Projection = projection;
-            //effect.View = view;
 
         }
         #endregion
@@ -381,6 +372,12 @@ namespace ShaderMove
             CalculateNormals();
             CopyToBuffers();
 
+            // Load models
+            fish = content.Load<Model>(@"Content\Sheephead0");
+            fishMatrix = new Matrix[fish.Bones.Count];
+            fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
+            Player = new Fish(content, 5, new Vector3(76, 20 , 70 ));
+            fishMatrix = new Matrix[Player.bones.Count];
             // Load caustics
             Texture2D causticMap = Content.Load<Texture2D>(@"Content/Caustic");
             Caustics caustics = new Caustics(causticMap, GraphicsDevice);
@@ -447,6 +444,7 @@ namespace ShaderMove
 
             fpsCalc(gameTime);
             SetPos(gameTime);
+            SetAnim(gameTime);
 
             base.Update(gameTime);
         }
@@ -459,6 +457,27 @@ namespace ShaderMove
             mfRed += (float)gameTime.ElapsedGameTime.Milliseconds / 10000.0f;
 
        }
+        //Set direction on animation
+        void SetAnim(GameTime gameTime)
+        {
+            //right boundary
+            float max = (float)Math.PI/20;
+            //left boundary
+            float min = -max;
+            float factor = (float)gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
+
+            //if less than min, go towards max
+            if (animFactor < min)
+                animUp = true;
+            //if more than mmax, go towards min
+            if (animFactor > max)
+                animUp = false;
+
+            if (animUp)
+                animFactor += factor;
+            else
+                animFactor -= factor;
+        }
 
         // FPS calculation
         void fpsCalc(GameTime gameTime)
@@ -537,10 +556,7 @@ namespace ShaderMove
             world = matIdentify * scale * matCam;
 
             GraphicsDevice.Textures[0] = texture1;
-            //GraphicsDevice.Textures[1] = texture1;
 
-            //effect.World = world;
-            //effectWVP.SetValue(world * view * projection);
             effectWorld.SetValue(world);
             effectView.SetValue(camera.View);
             effectProjection.SetValue(camera.Projection);
@@ -549,10 +565,7 @@ namespace ShaderMove
             foreach (EffectPass pass in effect2.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices, 0, 6, MittVerteksFormat.VertexDeclaration);
-                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices2, 0, 6, MittVerteksFormat.VertexDeclaration);
                 GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cube, 0, 6, VertexPositionColorTexture.VertexDeclaration);
-                //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, cubeVertices2, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             }
 
         }
@@ -568,8 +581,6 @@ namespace ShaderMove
                 GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
                 BlendState bs = new BlendState();
-                //bs.AlphaSourceBlend = Blend.DestinationAlpha;
-                //bs.AlphaDestinationBlend = Blend.SourceAlpha;
                 bs.ColorSourceBlend = Blend.DestinationColor;
                 bs.ColorDestinationBlend = Blend.SourceColor;
                 bs.AlphaBlendFunction = BlendFunction.Add;
@@ -628,49 +639,57 @@ namespace ShaderMove
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                //GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, terrainVertices, 0, terrainVertices.Length, terrainIndices, 0, terrainIndices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
                 GraphicsDevice.Indices = myIndexBuffer;
                 GraphicsDevice.SetVertexBuffer(myVertexBuffer);
                 GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, terrainVertices.Length, 0, terrainIndices.Length / 3);
             }
         }
 
-        public void DrawFish()
+        private void DrawFish(Fish fish)
         {
             Matrix world = Matrix.Identity;
             effectWorld.SetValue(world);
             effectView.SetValue(camera.View);
             effectProjection.SetValue(camera.Projection);
 
+            Matrix trans, rotation;
 
-            Matrix scale, trans, rotation;
-
-            float m = (float)(Math.PI*6/4);
+            float m = (float)(Math.PI*4/4);
             Matrix.CreateRotationY(m, out rotation);
 
-            Matrix.CreateScale(5, 5, 5, out scale);
-            trans = Matrix.CreateTranslation(camera.CameraPosition.X, camera.CameraPosition.Y -1.5f, camera.CameraPosition.Z-3.5f);
-            //Matrix[] matriseTabell = new Matrix[fish.Bones.Count];
-            //fish.CopyAbsoluteBoneTransformsTo(matriseTabell);
+            trans = Matrix.CreateTranslation(fish.pos);
+            
+            //under back fin
+            fish.bones[21].Transform = Matrix.CreateRotationY(animFactor/5);
+            //back fin
+            fish.bones[24].Transform = Matrix.CreateRotationY(-animFactor);
+            //side fins
+            fish.bones[12].Transform = Matrix.CreateRotationY(animFactor/5);
+            fish.bones[9].Transform = Matrix.CreateRotationY(-animFactor/5);
+            //under fins
+            fish.bones[15].Transform = Matrix.CreateRotationY(-animFactor);
+            fish.bones[18].Transform = Matrix.CreateRotationY(animFactor);
+            //whole fish
+            fish.bones[1].Transform = Matrix.CreateRotationY(animFactor/10);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
 
-            foreach (ModelMesh mesh in fish.Meshes)
+            fish.CopyAbsoluteBoneTransformsTo(ref fishMatrix);
+
+            foreach (ModelMesh mesh in fish.meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    effect.World = fishMatrix[mesh.ParentBone.Index] * scale * rotation * trans;
+                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * rotation * trans;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();
                     effect.LightingEnabled = true;
-                    //effectWorld.SetValue(fishMatrix[mesh.ParentBone.Index]);
-                    //effectView.SetValue(camera.View);
-                    //effectProjection.SetValue(camera.Projection);
-                    //pass.Apply();
+                    
                 }
                 mesh.Draw();
             }
+
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
@@ -690,12 +709,11 @@ namespace ShaderMove
             //Setter world=I:
             world = Matrix.Identity;
             
-            //DrawSkyDome(camera.View);
-            //DrawAxis();
+            
             DrawCube(cubeVertices, texture1);
             DrawCube(cubeVertices2, texture2);
 
-            DrawFish();
+            DrawFish(Player);
 
             // Count frames and show FPS
             frameCounter++;
