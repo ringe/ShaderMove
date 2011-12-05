@@ -37,10 +37,5 @@ namespace ShaderLib
 
             base.Update(gameTime);
         }
-
-        public void setHeight(ref float[,] hData)
-        {
-            heightData = hData;
-        }
     }
 }

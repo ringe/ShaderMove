@@ -82,7 +82,7 @@ namespace ShaderLib
                 model.CacheEffects();
                 model.SetModelEffect(depthNormalEffect, false);
                 model.Draw(Camera.View, Camera.Projection,
-                    ((FirstPersonCamera)Camera).CameraPosition);
+                    ((FirstPersonCamera)Camera).Position);
                 model.RestoreEffects();
             }
 
@@ -127,7 +127,7 @@ namespace ShaderLib
                 lightingEffect.Parameters["WorldViewProjection"].SetValue(wvp);
 
                 // Determine the distance between the light and camera
-                float dist = Vector3.Distance(((FirstPersonCamera)Camera).CameraPosition, 
+                float dist = Vector3.Distance(((FirstPersonCamera)Camera).Position, 
                     light.Position);
 
                 // If the camera is inside the light-sphere, invert the cull mode

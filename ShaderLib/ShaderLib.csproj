@@ -95,6 +95,7 @@
     <Compile Include="Camera.cs" />
     <Compile Include="CModel.cs" />
     <Compile Include="FirstPersonCamera.cs" />
+    <Compile Include="FishCam.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Materials\Material.cs" />
     <Compile Include="Materials\Caustics.cs" />
