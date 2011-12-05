@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Input;
 
 namespace ShaderLib
 {
@@ -18,7 +19,7 @@ namespace ShaderLib
         private const float moveRate = 20.0f;      // for FirstPersonCamra. 
         protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
         protected float[,] heightData; // for FirstPersonCamera
-
+        
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
@@ -46,6 +47,12 @@ namespace ShaderLib
         public Vector3 Position
         {
             get { return cameraPosition; }
+            set
+            {
+                cameraPosition.X = value.X;
+                cameraPosition.Y = value.Y + 4;
+                cameraPosition.Z = value.Z + 6;
+            }
         }
 
         public FishCam(Game game)
