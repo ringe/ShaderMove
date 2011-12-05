@@ -17,7 +17,6 @@ namespace PondLibs
         //En referanse til input-komponenten: 
         protected IInputHandler input;
         private const float moveRate = 20.0f;
-        protected Vector3 movement = Vector3.Zero;
         private float cameraYaw = 0.0f;
         private float cameraPitch = 0.0f;
         private const float spinRate = 40.0f;
@@ -41,13 +40,19 @@ namespace PondLibs
             // update position based on keys
             movement = Vector3.Zero;
             if (input.KeyboardState.IsKeyDown(Keys.A))
-                movement.X--;
+                movement.X--; 
             if (input.KeyboardState.IsKeyDown(Keys.D))
                 movement.X++;
             if (input.KeyboardState.IsKeyDown(Keys.S))
+            {
                 movement.Z++;
+                movement.Y += cameraPitch/50;
+            }
             if (input.KeyboardState.IsKeyDown(Keys.W))
+            {
                 movement.Z--;
+                movement.Y -= cameraPitch/50;
+            }
              
             if (input.KeyboardState.IsKeyDown(Keys.Left))
                 cameraYaw = cameraYaw + (spinRate * timeDelta);
@@ -61,26 +66,30 @@ namespace PondLibs
 
             //OPP/NED (PITCH): 
             if (input.KeyboardState.IsKeyDown(Keys.Down))
-                cameraPitch = cameraPitch - (spinRate * timeDelta);
-            if (input.KeyboardState.IsKeyDown(Keys.Up))
                 cameraPitch = cameraPitch + (spinRate * timeDelta);
+            if (input.KeyboardState.IsKeyDown(Keys.Up))
+                cameraPitch = cameraPitch - (spinRate * timeDelta); 
             if (cameraPitch > 89)
                 cameraPitch = 89;
             else if (cameraPitch < -89)
                 cameraPitch = -89;
 
 
+
             if (movement.LengthSquared() != 0)
                 movement.Normalize();
+
             // Posisjoner kamera: 
             Matrix rotationMatrix;
 
             //Rotasjonsmatrise om Y-aksen: 
             Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
 
-            //Legger til pitch dvs. rotasjon om X‐aksen:
-            Rotation = Matrix.CreateRotationX(MathHelper.ToRadians(cameraPitch)) * rotationMatrix;
-
+            //Legger til pitch dvs. rotasjon om Z‐aksen:
+            Rotation = Quaternion.CreateFromRotationMatrix(Matrix.CreateRotationZ(MathHelper.ToRadians(cameraPitch))
+                * rotationMatrix
+                * Matrix.CreateRotationY((float)(Math.PI * 6 / 4))
+                );
 
             //FirstPersonCamera, endrer kameraets posisjon: 
             movement *= (moveRate * timeDelta);

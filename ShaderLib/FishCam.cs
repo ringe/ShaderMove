@@ -16,7 +16,7 @@ namespace PondLibs
     /// </summary>
     public class FishCam : Microsoft.Xna.Framework.GameComponent
     {
-        private const float moveRate = 20.0f;      // for FirstPersonCamra. 
+        private const float moveRate = 10.0f;      // for FirstPersonCamra. 
         protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
         protected float[,] heightData; // for FirstPersonCamera
         
@@ -26,16 +26,25 @@ namespace PondLibs
         private Vector3 cameraPosition = new Vector3(76, 24, 76);
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = Vector3.Up;
-        private Vector3 cameraReference = new Vector3(0, -.3f, -1.0f);
+        private Vector3 cameraReference = new Vector3(0, -.2f, -1.0f);
         private float cameraYaw = 0.0f;
         private float cameraPitch = 0.0f;
         private const float spinRate = 40.0f;
+        private Matrix translation;
+        private IInputHandler input;
+        private Matrix rotationMatrix;
 
         //view og projection-matrisene er tilgjengelig via properties: 
         public Matrix View
         {
             get { return view; }
             set { view = value; }
+        }
+
+        public Matrix Rotation
+        {
+            get { return rotationMatrix; }
+            set { rotationMatrix = value; }
         }
 
         public Matrix Projection
@@ -50,15 +59,19 @@ namespace PondLibs
             set
             {
                 cameraPosition.X = value.X;
-                cameraPosition.Y = value.Y + 4;
-                cameraPosition.Z = value.Z + 6;
+                cameraPosition.Y = value.Y;
+                cameraPosition.Z = value.Z;
             }
         }
 
-        public FishCam(Game game)
+        public FishCam(Game game, Vector3 pos)
             : base(game)
         {
             graphics = (GraphicsDeviceManager)game.Services.GetService(typeof(IGraphicsDeviceManager));
+            cameraPosition = pos;
+
+            //Henter ut en referanse til input-handleren: 
+            input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
 
         public override void Initialize()
@@ -76,53 +89,33 @@ namespace PondLibs
             Matrix.CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out view);
         }
 
-        public void setTarget(Vector3 targ)
-        {
-            cameraTarget = targ;
-        }
-
         public override void Update(GameTime gameTime)
         {
             //timeDelta = tiden mellom to kall på Update 
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // Posisjoner kamera: 
-            Matrix rotationMatrix;
-
-            //Rotasjonsmatrise om Y-aksen: 
-            Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
-
-            //Legger til pitch dvs. rotasjon om X‐aksen:
-            rotationMatrix = Matrix.CreateRotationX(MathHelper.ToRadians(cameraPitch)) * rotationMatrix;
-
-            //FirstPersonCamera, endrer kameraets posisjon: 
-            movement *= (moveRate * timeDelta);
-            if (movement != Vector3.Zero)
-            {
-                //Roterer movement-vektoren: 
-                Vector3.Transform(ref movement, ref rotationMatrix, out movement);
-                //Oppdaterer kameraposisjonen med move-vektoren:  
-                cameraPosition += movement;
-            }
-
-            // Setter posisjonen til bakkenivå
-            if (heightData != null)
-                cameraPosition.Y = heightData[(int)cameraPosition.X, (int)cameraPosition.Z];
-
-            // Oppretter en vektor som peker i retninga kameraet 'ser': 
+            //// Oppretter en vektor som peker i retninga kameraet 'ser': 
             Vector3 transformedReference;
 
-            // Roterer cameraReference-vektoren: 
+            // Starting position behind the Player
+            Vector3 campos = new Vector3(0, 4, 10);
+
+            // Turn to look forward
+            rotationMatrix *= Matrix.CreateRotationY((float)(Math.PI * 1 / 4));
+
+            // Adjust to camera reference
             Vector3.Transform(ref cameraReference, ref rotationMatrix, out transformedReference);
 
-            // Beregner hva kameraet ser på (cameraTarget) vha.  
-            // nåværende posisjonsvektor og retningsvektoren: 
-            Vector3.Add(ref cameraPosition, ref transformedReference, out cameraTarget);
+            campos = Vector3.Transform(campos, rotationMatrix);
+            campos += cameraPosition;
 
-            //Oppdaterer view-matrisa vha. posisjons, kameramål og opp-vektorene: 
-            Matrix.CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out view);
+            Vector3.Add(ref campos, ref transformedReference, out cameraTarget);
+
+            Matrix.CreateLookAt(ref campos, ref cameraTarget, ref cameraUpVector, out view);
 
             base.Update(gameTime);
         }
+
+        
     }
 }

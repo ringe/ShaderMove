@@ -128,6 +128,9 @@ namespace FishPond
         private ArrayList opponents;
         private Water water;
 
+        // Start it all here
+        private Vector3 startPosition = new Vector3(76, 20, 70);
+
         public Pond()
         {
             this.IsFixedTimeStep = false;
@@ -139,7 +142,7 @@ namespace FishPond
             this.Components.Add(input);
 
             //Legger til Camera: 
-            camera = new FishCam(this);
+            camera = new FishCam(this, startPosition);
             this.Components.Add(camera);
         }
 
@@ -346,7 +349,7 @@ namespace FishPond
             CopyToBuffers();
 
             // Load Player
-            Player = new Player(content, 5, new Vector3(76, 20 , 70 ), this);
+            Player = new Player(content, 5, startPosition, this);
             fishMatrix = new Matrix[Player.bones.Count];
 
             //Load Opponents
@@ -357,7 +360,6 @@ namespace FishPond
             //    System.Threading.Thread.Sleep(50);
             //}
             
-
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
             texture3 = content.Load<Texture2D>(@"Content\pond-water-texture");
         }
@@ -408,7 +410,13 @@ namespace FishPond
             SetAnim(gameTime);
 
             Player.Update(gameTime);
+            camera.Rotation = Matrix.CreateFromQuaternion(Player.Rotation);
             camera.Position = Player.pos;
+            camera.Update(gameTime);
+
+            //camera.Position = Player.pos;
+            //camera.Rotation = Player.Rotation;
+
             base.Update(gameTime);
         }
 
@@ -639,7 +647,7 @@ namespace FishPond
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * fish.Rotation * trans;
+                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * Matrix.CreateFromQuaternion(fish.Rotation) * trans;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();

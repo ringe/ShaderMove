@@ -22,7 +22,8 @@ namespace PondLibs
         private Matrix[] fishMatrix;
         private Matrix size;
         private Vector3 position;
-        private  Matrix rotation;
+        private Quaternion rotation = Quaternion.Identity;
+        
 
         public Matrix scale { get { return size; } }
         public Vector3 pos {
@@ -42,7 +43,7 @@ namespace PondLibs
             // Load models
             fish = content.Load<Model>(@"Content\Sheephead0");
             fishMatrix = new Matrix[fish.Bones.Count];
-            rotation = Matrix.CreateRotationY((float)(Math.PI * 6 / 4));
+            //rotation = Quaternion.CreateRotationY((float)(Math.PI * 6 / 4));
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
             size = Matrix.CreateScale(sz);
             position = pos;
@@ -62,11 +63,12 @@ namespace PondLibs
             // TODO: Y should be between h and the water level
             // WHAT IS h? the fish location is different from the terrain and the water
 
-            rotation = Matrix.CreateRotationY((float)(Math.PI * 6 / 4));
+           // rotation = Matrix.CreateRotationY((float)(Math.PI * 6 / 4));
             position = new Vector3(x-133, h, z-133);
         }
 
-        public Matrix Rotation { 
+        public Quaternion Rotation
+        { 
             get { return rotation; }
             set { rotation = value; }
         }
