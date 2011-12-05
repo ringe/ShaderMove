@@ -122,7 +122,7 @@ namespace ShaderMove
 
         // Fish
         private Matrix[] fishMatrix;
-        private Fish Player;
+        private Player Player;
         private float animFactor;
         private bool animUp;
         private ArrayList opponents;
@@ -342,7 +342,7 @@ namespace ShaderMove
             CopyToBuffers();
 
             // Load Player
-            Player = new Fish(content, 5, new Vector3(76, 20 , 70 ));
+            Player = new Player(content, 5, new Vector3(76, 20 , 70 ), this);
             fishMatrix = new Matrix[Player.bones.Count];
 
             //Load Opponents
@@ -403,7 +403,8 @@ namespace ShaderMove
             SetPos(gameTime);
             SetAnim(gameTime);
 
-
+            Player.Update(gameTime);
+            camera.Position = Player.pos;
             base.Update(gameTime);
         }
 

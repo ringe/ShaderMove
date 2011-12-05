@@ -7,13 +7,17 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
-namespace ShaderMove
+namespace ShaderLib
 {
-    class Fish
+    public class Fish
     {
+        //En referanse til input-komponenten: 
+        private const float moveRate = 20.0f;      // for FirstPersonCamra. 
+        protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
+        protected float[,] heightData; // for FirstPersonCamera
+
         private Model fish;
         private Matrix[] fishMatrix;
         private Matrix size;
@@ -21,7 +25,10 @@ namespace ShaderMove
         private  Matrix rotation;
 
         public Matrix scale { get { return size; } }
-        public Vector3 pos { get { return position; } }
+        public Vector3 pos {
+            get { return position; }
+            set { position = value; }
+        }
         public ModelMeshCollection meshes { get { return fish.Meshes; } }
         public Matrix[] matrix { get { return fishMatrix; } }
         public ModelBoneCollection bones { get { return fish.Bones; } }
@@ -61,6 +68,7 @@ namespace ShaderMove
 
         public Matrix Rotation { 
             get { return rotation; }
+            set { rotation = value; }
         }
     }
 }
