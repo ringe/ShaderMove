@@ -11,13 +11,13 @@ Content\dome.xnb
 Content\Sheephead0.xnb
 Content\cloudMap_0.xnb
 Content\SheephT_0.xnb
-Content\WaterEffect.xnb
-Content\waterEffectt.xnb
-Content\ProjectedTexture.xnb
 Content\WaterNormal.xnb
+Content\WaterEffect.xnb
 Content\water_normal.xnb
-Content\Caustic.xnb
+Content\waterEffectt.xnb
 Content\PPDepthNormal.xnb
 Content\PPLight.xnb
-Content\PPLightMesh.xnb
+Content\ProjectedTexture.xnb
+Content\Caustic.xnb
 Content\projected texture.xnb
+Content\PPLightMesh.xnb

@@ -38,5 +38,17 @@ namespace ShaderMove
             size = Matrix.CreateScale(sz);
             position = pos;
         }
+
+        public Fish(ContentManager content, float[,] height)
+        {
+            fish = content.Load<Model>(@"Content\Sheephead0");
+            fishMatrix = new Matrix[fish.Bones.Count];
+            fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
+            size = Matrix.CreateScale(8);
+            Random r = new Random();
+
+            //position = new Vector3(r.Next(-133, 133), 0, r.Next(-133, 133));
+            //position.Y = r.Next(height[position.X, position.Z], 
+        }
     }
 }
