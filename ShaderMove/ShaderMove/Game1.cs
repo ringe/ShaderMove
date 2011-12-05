@@ -203,14 +203,6 @@ namespace ShaderMove
         /// </summary>
         protected void InitVertices()
         {
-            // Set axis lines
-            xAxis[0] = new VertexPositionColor(new Vector3(-100.0f, 0f, 0f), Color.Red);
-            xAxis[1] = new VertexPositionColor(new Vector3(100.0f, 0f, 0f), Color.Red);
-            yAxis[0] = new VertexPositionColor(new Vector3(0f, -100.0f, 0f), Color.White);
-            yAxis[1] = new VertexPositionColor(new Vector3(0f, 100.0f, 0f), Color.White);
-            zAxis[0] = new VertexPositionColor(new Vector3(0f, 0f, -100.0f), Color.Black);
-            zAxis[1] = new VertexPositionColor(new Vector3(0f, 0f, 100.0f), Color.Black);
-
             // Initialize a Cube
             float min = 0.001f; float max = 0.999f;
             cubeVertices = new VertexPositionColorTexture[8]
@@ -256,13 +248,13 @@ namespace ShaderMove
 
             waterVertices = new VertexPositionColorTexture[4]
             {
-            new VertexPositionColorTexture(new Vector3(-1,  1.5f,  -1),
+            new VertexPositionColorTexture(new Vector3(-1,  1.3f,  -1),
                     Color.Blue, new Vector2(min,max)),
-                new VertexPositionColorTexture(new Vector3( 1,  1.5f,  -1),
+                new VertexPositionColorTexture(new Vector3( 1,  1.3f,  -1),
                     Color.Blue, new Vector2(min,min)),
-                new VertexPositionColorTexture(new Vector3(-1, 1.5f,  1),
+                new VertexPositionColorTexture(new Vector3(-1, 1.3f,  1),
                     Color.Red, new Vector2(max,max)),
-                new VertexPositionColorTexture(new Vector3(1, 1.5f,  1),
+                new VertexPositionColorTexture(new Vector3(1, 1.3f,  1),
                     Color.Red, new Vector2(max,min))
             };
            
@@ -292,13 +284,13 @@ namespace ShaderMove
                     terrainVertices[x + y * terrainWidth].Position = new Vector3(x, heightData[x, y], -y);
 
                     if (heightData[x, y] < minHeight + (maxHeight - minHeight) / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.Blue;
+                        terrainVertices[x + y * terrainWidth].Color = Color.DarkGray;
                     else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 2 / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.Green;
+                        terrainVertices[x + y * terrainWidth].Color = Color.DarkBlue;
                     else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 3 / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.Brown;
+                        terrainVertices[x + y * terrainWidth].Color = Color.Blue;
                     else
-                        terrainVertices[x + y * terrainWidth].Color = Color.White;
+                        terrainVertices[x + y * terrainWidth].Color = Color.SandyBrown;
                 }
             }
         }
@@ -636,9 +628,7 @@ namespace ShaderMove
             Matrix.CreateRotationY(m, out rotation);
 
             trans = Matrix.CreateTranslation(fish.pos);
-            
-            //under back fin
-            fish.bones[21].Transform = Matrix.CreateRotationY(animFactor/5);
+        
             //back fin
             fish.bones[24].Transform = Matrix.CreateRotationY(-animFactor);
             //side fins
