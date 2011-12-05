@@ -10,9 +10,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System.Runtime.InteropServices;
-using ShaderLib;
+using PondLibs;
 
-namespace ShaderMove
+namespace FishPond
 {
     struct MittVerteksFormat
     {
@@ -40,7 +40,7 @@ namespace ShaderMove
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class Game1 : Microsoft.Xna.Framework.Game
+    public class Pond : Microsoft.Xna.Framework.Game
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern uint MessageBox(IntPtr hWnd, String text, String caption, uint type);
@@ -128,8 +128,7 @@ namespace ShaderMove
         private ArrayList opponents;
         private Water water;
 
-        #region initialize
-        public Game1()
+        public Pond()
         {
             this.IsFixedTimeStep = false;
             graphics = new GraphicsDeviceManager(this);
@@ -497,11 +496,11 @@ namespace ShaderMove
 
         private void DrawOverlayText(string text, int x, int y)
         {
-            //spriteBatch.Begin();
+            spriteBatch.Begin();
             //Skriver teksten to ganger, først med svart bakgrunn og deretter med  hvitt, en piksel ned og til venstre, slik at teksten blir mer lesbar.
             spriteBatch.DrawString(spriteFont, text, new Vector2(x, y), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(x - 1, y - 1), Color.White);
-            //spriteBatch.End();
+            spriteBatch.End();
             //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -672,11 +671,9 @@ namespace ShaderMove
             GraphicsDevice.RasterizerState = rasterizerState1;
 
             GraphicsDevice.Clear(Color.DeepSkyBlue);
-            spriteBatch.Begin();
 
             //Setter world=I:
             world = Matrix.Identity;
-            
             
             DrawCube(cubeVertices, texture1);
             DrawCube(cubeVertices2, texture2);
@@ -684,19 +681,20 @@ namespace ShaderMove
             DrawFish(Player);
             drawOpponents();
 
-            // Count frames and show FPS
-            frameCounter++;
-            DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
-
             DrawTerrain();
             DrawWater(waterVertices, texture2);
 
+            //spriteBatch.Begin();
             water.Draw(ref spriteBatch);
-            spriteBatch.End();
+
+            // Count frames and show FPS
+            frameCounter++;
+            DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
+            //spriteBatch.End();
+
             base.Draw(gameTime);
         }
 
         public int[] Indices { get; set; }
     }
 }
-        #endregion

@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
 
-namespace ShaderLib
+namespace PondLibs
 {
     public interface IInputHandler
     {

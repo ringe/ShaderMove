@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Input;
 
-namespace ShaderLib
+namespace PondLibs
 {
     /// <summary>
     /// This is a game component that implements IUpdateable.

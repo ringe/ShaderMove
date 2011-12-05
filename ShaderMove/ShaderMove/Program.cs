@@ -1,6 +1,6 @@
 using System;
 
-namespace ShaderMove
+namespace FishPond
 {
 #if WINDOWS || XBOX
     static class Program
@@ -10,7 +10,7 @@ namespace ShaderMove
         /// </summary>
         static void Main(string[] args)
         {
-            using (Game1 game = new Game1())
+            using (Pond game = new Pond())
             {
                 game.Run();
             }
