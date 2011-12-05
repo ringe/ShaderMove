@@ -126,6 +126,7 @@ namespace ShaderMove
         private float animFactor;
         private bool animUp;
         private ArrayList opponents;
+        private Water water;
 
         #region initialize
         public Game1()
@@ -317,6 +318,10 @@ namespace ShaderMove
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
+            // Water
+            Texture2D dropTexture = Content.Load<Texture2D>(@"Content\pond-water-texture");
+            water = new Water(dropTexture);
+
             // Position mouse at the center of the game window
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
 
@@ -355,7 +360,7 @@ namespace ShaderMove
             
 
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
-            texture3 = content.Load<Texture2D>(@"Content\water_normal");
+            texture3 = content.Load<Texture2D>(@"Content\pond-water-texture");
         }
 
         private void LoadHeightData(Texture2D heightMap)
@@ -491,11 +496,11 @@ namespace ShaderMove
 
         private void DrawOverlayText(string text, int x, int y)
         {
-            spriteBatch.Begin();
+            //spriteBatch.Begin();
             //Skriver teksten to ganger, først med svart bakgrunn og deretter med  hvitt, en piksel ned og til venstre, slik at teksten blir mer lesbar.
             spriteBatch.DrawString(spriteFont, text, new Vector2(x, y), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(x - 1, y - 1), Color.White);
-            spriteBatch.End();
+            //spriteBatch.End();
             //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -530,6 +535,7 @@ namespace ShaderMove
 
         protected void DrawWater(VertexPositionColorTexture[] water, Texture2D texture)
         {
+            // Surface
             for (int i = 0; i <= 2; i++)
             {
                 effectPos.SetValue(mfRed-((i-1)*2));
@@ -665,6 +671,7 @@ namespace ShaderMove
             GraphicsDevice.RasterizerState = rasterizerState1;
 
             GraphicsDevice.Clear(Color.DeepSkyBlue);
+            spriteBatch.Begin();
 
             //Setter world=I:
             world = Matrix.Identity;
@@ -683,8 +690,8 @@ namespace ShaderMove
             DrawTerrain();
             DrawWater(waterVertices, texture2);
 
-
-
+            water.Draw(ref spriteBatch);
+            spriteBatch.End();
             base.Draw(gameTime);
         }
 
