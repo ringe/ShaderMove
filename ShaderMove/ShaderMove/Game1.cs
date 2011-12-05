@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -130,6 +131,7 @@ namespace ShaderMove
         private Fish Player;
         private float animFactor;
         private bool animUp;
+        private ArrayList opponents;
 
         #region initialize
         public Game1()
@@ -366,6 +368,14 @@ namespace ShaderMove
             // Load Player
             Player = new Fish(content, 5, new Vector3(76, 20 , 70 ));
             fishMatrix = new Matrix[Player.bones.Count];
+
+            //Load Opponents
+            opponents = new ArrayList();
+            for (int i = 0; i < 100; i++)
+            {
+                opponents.Add(new Fish(content, heightData));
+                System.Threading.Thread.Sleep(50);
+            }
 
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
             texture3 = content.Load<Texture2D>(@"Content\water_normal");
@@ -661,6 +671,13 @@ namespace ShaderMove
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
+        public void drawOpponents()
+        {
+            Object[] p = opponents.ToArray();
+            for (int i = 0; i < p.Length; i++)
+                DrawFish((Fish)p[i]);
+        }
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -682,6 +699,7 @@ namespace ShaderMove
             DrawCube(cubeVertices2, texture2);
 
             DrawFish(Player);
+            drawOpponents();
 
             // Count frames and show FPS
             frameCounter++;
