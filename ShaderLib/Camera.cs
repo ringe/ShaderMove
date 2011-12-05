@@ -25,10 +25,10 @@ namespace ShaderLib
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
-        private Vector3 cameraPosition = new Vector3(80.0f, 20.0f, 80.0f);
+        private Vector3 cameraPosition = new Vector3(76, 24, 76);
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = Vector3.Up;
-        private Vector3 cameraReference = new Vector3(0.0f, 0.0f, -1.0f);
+        private Vector3 cameraReference = new Vector3(0, -.3f, -1.0f);
         private float cameraYaw = 0.0f;
         private float cameraPitch = 0.0f; 
         private const float spinRate = 40.0f;
@@ -46,7 +46,7 @@ namespace ShaderLib
             set { projection = value; }
         }
 
-        public Vector3 CameraPosition
+        public Vector3 Position
         {
             get { return cameraPosition; }
         }
@@ -72,6 +72,11 @@ namespace ShaderLib
 
             Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 1000.0f, out projection);
             Matrix.CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out view);
+        }
+
+        public void setTarget(Vector3 targ)
+        {
+            cameraTarget = targ;
         }
 
         public override void Update(GameTime gameTime)

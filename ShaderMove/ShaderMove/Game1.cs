@@ -69,7 +69,7 @@ namespace ShaderMove
         // ShaderLib input and camera
         private Input input;
         //private Camera camera;
-        private FirstPersonCamera camera; 
+        private FishCam camera; 
 
         // Vertices
         VertexPositionColorTexture[] cubeVertices;
@@ -95,12 +95,6 @@ namespace ShaderMove
         private Matrix world;
         private Matrix projection;
         private Matrix view;
-
-        // Kameraposisjon:
-
-        private Vector3 cameraPosition;// = new Vector3(60, 80, -80);
-        private Vector3 cameraTarget;// = new Vector3(0, 0, 0);
-        private Vector3 cameraUpVector;// = new Vector3(0, 1, 0);
 
         // Boundaries
         private const float BOUNDARY = 80.0f;
@@ -145,7 +139,7 @@ namespace ShaderMove
             this.Components.Add(input);
 
             //Legger til Camera: 
-            camera = new FirstPersonCamera(this);
+            camera = new FishCam(this);
             this.Components.Add(camera);
         }
 
@@ -161,7 +155,7 @@ namespace ShaderMove
 
             base.Initialize();
             InitDevice();
-            InitCamera();
+            camera.Initialize();
             InitVertices();
         }
 
@@ -181,24 +175,6 @@ namespace ShaderMove
 
             Window.Title = "Move!";
         }
-
-        /// <summary>
-        /// Position the camera.
-        /// </summary>
-        private void InitCamera()
-        {
-
-            //Projeksjon:
-            float aspectRatio = (float)graphics.GraphicsDevice.Viewport.Width / (float)graphics.GraphicsDevice.Viewport.Height;
-
-            //Oppretter view-matrisa:
-            Matrix.CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out view);
-
-            //Oppretter projeksjonsmatrisa:
-            Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.01f, 1000.0f, out projection);
-
-        }
-        #endregion
 
         /// <summary>
         /// Prepare the object vertices
@@ -371,11 +347,12 @@ namespace ShaderMove
 
             //Load Opponents
             opponents = new ArrayList();
-            for (int i = 0; i < 100; i++)
-            {
-                opponents.Add(new Fish(content, heightData));
-                System.Threading.Thread.Sleep(50);
-            }
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    opponents.Add(new Fish(content, heightData, terrainHeight));
+            //    System.Threading.Thread.Sleep(50);
+            //}
+            
 
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
             texture3 = content.Load<Texture2D>(@"Content\water_normal");
@@ -426,6 +403,7 @@ namespace ShaderMove
             SetPos(gameTime);
             SetAnim(gameTime);
 
+
             base.Update(gameTime);
         }
 
@@ -435,8 +413,8 @@ namespace ShaderMove
                 mfRed = 0;
 
             mfRed += (float)gameTime.ElapsedGameTime.Milliseconds / 10000.0f;
-
        }
+
         //Set direction on animation
         void SetAnim(GameTime gameTime)
         {
@@ -531,7 +509,7 @@ namespace ShaderMove
             Matrix scale;
 
             Matrix.CreateScale(terrainWidth, terrainHeight, terrainWidth, out scale);
-            Matrix matCam = Matrix.CreateTranslation(camera.CameraPosition.X, 0.0f, camera.CameraPosition.Z);
+            Matrix matCam = Matrix.CreateTranslation(camera.Position.X, 0.0f, camera.Position.Z);
 
             world = matIdentify * scale * matCam;
 
@@ -578,7 +556,7 @@ namespace ShaderMove
                 Matrix scale;
 
                 Matrix.CreateScale(terrainWidth, terrainHeight / 10, terrainWidth, out scale);
-                Matrix matCam = Matrix.CreateTranslation(camera.CameraPosition.X, 0.0f, camera.CameraPosition.Z);
+                Matrix matCam = Matrix.CreateTranslation(camera.Position.X, 0.0f, camera.Position.Z);
 
                 world = matIdentify * scale * matCam;
                 //Starter tegning - må bruke effect-objektet:
@@ -632,10 +610,7 @@ namespace ShaderMove
             effectView.SetValue(camera.View);
             effectProjection.SetValue(camera.Projection);
 
-            Matrix trans, rotation;
-
-            float m = (float)(Math.PI*4/4);
-            Matrix.CreateRotationY(m, out rotation);
+            Matrix trans;
 
             trans = Matrix.CreateTranslation(fish.pos);
         
@@ -658,7 +633,7 @@ namespace ShaderMove
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * rotation * trans;
+                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * fish.Rotation * trans;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();
@@ -716,3 +691,4 @@ namespace ShaderMove
         public int[] Indices { get; set; }
     }
 }
+        #endregion
