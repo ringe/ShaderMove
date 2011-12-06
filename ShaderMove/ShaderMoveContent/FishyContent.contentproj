@@ -98,24 +98,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cloudMap.jpg">
-      <Name>cloudMap</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Sheephead0.fbx">
       <Name>Sheephead0</Name>
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="SheephT.bmp">
-      <Name>SheephT</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +172,13 @@
   <ItemGroup>
     <Compile Include="pond-water-texture.jpg">
       <Name>pond-water-texture</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="cloudMap.jpg">
+      <Name>cloudMap</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

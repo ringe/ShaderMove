@@ -16,10 +16,6 @@ namespace PondLibs
     /// </summary>
     public class FishCam : Microsoft.Xna.Framework.GameComponent
     {
-        private const float moveRate = 10.0f;      // for FirstPersonCamra. 
-        protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
-        protected float[,] heightData; // for FirstPersonCamera
-        
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
@@ -27,10 +23,6 @@ namespace PondLibs
         private Vector3 cameraTarget = Vector3.Zero;
         private Vector3 cameraUpVector = Vector3.Up;
         private Vector3 cameraReference = new Vector3(0, -.2f, -1.0f);
-        private float cameraYaw = 0.0f;
-        private float cameraPitch = 0.0f;
-        private const float spinRate = 40.0f;
-        private Matrix translation;
         private IInputHandler input;
         private Matrix rotationMatrix;
 
