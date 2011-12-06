@@ -74,7 +74,7 @@ namespace FishPond
         // Vertices
         VertexPositionColorTexture[] cubeVertices;
         VertexPositionColorTexture[] cubeVertices2;
-        VertexPositionColorTexture[] waterVertices;
+        VertexPositionColorTexture[] surfaceVertices;
         VertexPositionColor[] xAxis = new VertexPositionColor[2];
         VertexPositionColor[] yAxis = new VertexPositionColor[2];
         VertexPositionColor[] zAxis = new VertexPositionColor[2];
@@ -82,7 +82,7 @@ namespace FishPond
         // Textures
         Texture2D texture1;
         Texture2D texture2;
-        Texture2D texture3;
+        Texture2D surfaceTexture;
 
         // Shaderstuff
         private Effect effect;
@@ -227,7 +227,7 @@ namespace FishPond
 
             //To trekanter
 
-            waterVertices = new VertexPositionColorTexture[4]
+            surfaceVertices = new VertexPositionColorTexture[4]
             {
             new VertexPositionColorTexture(new Vector3(-1,  1.3f,  -1),
                     Color.Blue, new Vector2(min,max)),
@@ -323,6 +323,7 @@ namespace FishPond
             // Water
             Texture2D dropTexture = Content.Load<Texture2D>(@"Content\pond-water-texture");
             water = new Water(dropTexture);
+            surfaceTexture = content.Load<Texture2D>(@"Content\pond-water-texture");
 
             // Position mouse at the center of the game window
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
@@ -361,7 +362,6 @@ namespace FishPond
             //}
             
             texture1 = content.Load<Texture2D>(@"Content\cloudMap");
-            texture3 = content.Load<Texture2D>(@"Content\pond-water-texture");
         }
 
         private void LoadHeightData(Texture2D heightMap)
@@ -541,14 +541,14 @@ namespace FishPond
 
         }
 
-        protected void DrawWater(VertexPositionColorTexture[] water, Texture2D texture)
+        protected void DrawSurface()
         {
             // Surface
             for (int i = 0; i <= 2; i++)
             {
                 effectPos.SetValue(mfRed-((i-1)*2));
 
-                GraphicsDevice.Textures[0] = texture3;
+                GraphicsDevice.Textures[0] = surfaceTexture;
 
                 GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
@@ -579,7 +579,7 @@ namespace FishPond
                     pass.Apply();
                     // Angir primitivtype, aktuelle vertekser, en offsetverdi og antall 
                     //  primitiver (her 1 siden verteksene beskriver en tredekant):
-                    GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList, water, 0, 4, Indices, 0, 2);
+                    GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList, surfaceVertices, 0, 4, Indices, 0, 2);
 
 
                 }
@@ -690,15 +690,14 @@ namespace FishPond
             drawOpponents();
 
             DrawTerrain();
-            DrawWater(waterVertices, texture2);
 
-            //spriteBatch.Begin();
+            // Draw water
+            DrawSurface();
             water.Draw(ref spriteBatch);
 
             // Count frames and show FPS
             frameCounter++;
             DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
-            //spriteBatch.End();
 
             base.Draw(gameTime);
         }
