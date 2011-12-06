@@ -141,6 +141,11 @@
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
     </Compile>
+    <Compile Include="Particle2.fx">
+      <Name>Particle2</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
     <None Include="PPShared.vsi">
       <Name>PPShared</Name>
     </None>

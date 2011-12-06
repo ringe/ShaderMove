@@ -114,7 +114,7 @@ namespace FishPond
         private Effect effect2;
 
         private EffectParameter effectAlpha;
-        private Effect waterEffect;
+        private Effect surfaceEffect;
         private float mfRed;
         private EffectParameter effectWaterWorld;
         private EffectParameter effectWaterProjection;
@@ -126,10 +126,21 @@ namespace FishPond
         private float animFactor;
         private bool animUp;
         private ArrayList opponents;
-        private Water water;
+
+        // Water
+        //private Water water;
+        List<ParticleExplosion> explosions = new List<ParticleExplosion>();
+        ParticleExplosionSettings particleExplosionSettings = new ParticleExplosionSettings();
+        ParticleSettings particleSettings = new ParticleSettings(); 
 
         // Start it all here
         private Vector3 startPosition = new Vector3(76, 20, 70);
+        private bool mama;
+        private Texture2D dropTexture;
+        private Effect waterEffect;
+
+        //Randomness 
+        public Random rnd = new Random();
 
         public Pond()
         {
@@ -321,8 +332,12 @@ namespace FishPond
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
             // Water
-            Texture2D dropTexture = Content.Load<Texture2D>(@"Content\pond-water-texture");
-            water = new Water(dropTexture);
+            dropTexture = Content.Load<Texture2D>(@"Content\pond-water-texture");
+            waterEffect = Content.Load<Effect>(@"Content\Particle2");
+            waterEffect.CurrentTechnique =
+            waterEffect.Techniques["Technique1"];
+            waterEffect.Parameters["theTexture"].SetValue(dropTexture);
+            //water = new Water(dropTexture);
             surfaceTexture = content.Load<Texture2D>(@"Content\pond-water-texture");
 
             // Position mouse at the center of the game window
@@ -330,15 +345,15 @@ namespace FishPond
 
             effect = Content.Load<Effect>(@"Content/effects");
             effect2 = Content.Load<Effect>(@"Content/MinEffekt2");
-            waterEffect = Content.Load<Effect>(@"Content/waterEffectt");
+            surfaceEffect = Content.Load<Effect>(@"Content/waterEffectt");
             effectWorld = effect2.Parameters["World"];
             effectProjection = effect2.Parameters["Projection"];
             effectView = effect2.Parameters["View"];
-            effectAlpha = waterEffect.Parameters["fx_Alpha"];
-            effectWaterWorld = waterEffect.Parameters["World"];
-            effectWaterProjection = waterEffect.Parameters["Projection"];
-            effectWaterView = waterEffect.Parameters["View"];
-            effectPos = waterEffect.Parameters["fx_Pos"];
+            effectAlpha = surfaceEffect.Parameters["fx_Alpha"];
+            effectWaterWorld = surfaceEffect.Parameters["World"];
+            effectWaterProjection = surfaceEffect.Parameters["Projection"];
+            effectWaterView = surfaceEffect.Parameters["View"];
+            effectPos = surfaceEffect.Parameters["fx_Pos"];
 
             // Load heightmap
             Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
@@ -414,10 +429,52 @@ namespace FishPond
             camera.Position = Player.pos;
             camera.Update(gameTime);
 
-            //camera.Position = Player.pos;
-            //camera.Rotation = Player.Rotation;
+            
+            //water.UpdateDrops(gameTime);
+            // Update drops 
+            UpdateDrops(gameTime); 
 
             base.Update(gameTime);
+        }
+
+
+        protected void UpdateDrops(GameTime gameTime)
+        {
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.B)) //Bang!! 
+                this.addExplotion();
+            // Loop through and update explosions 
+            for (int i = 0; i < explosions.Count; ++i)
+            {
+                explosions[i].Update(gameTime);
+                // If explosion is finished, remove it 
+                if (explosions[i].IsDead)
+                {
+                    explosions.RemoveAt(i);
+                    --i;
+                }
+            }
+        }
+
+        private void addExplotion()
+        {
+            explosions.Add(new ParticleExplosion(GraphicsDevice,
+               startPosition,
+               (rnd.Next(
+                   particleExplosionSettings.minLife,
+                   particleExplosionSettings.maxLife)),
+               (rnd.Next(
+                   particleExplosionSettings.minRoundTime,
+                   particleExplosionSettings.maxRoundTime)),
+               (rnd.Next(
+                   particleExplosionSettings.minParticlesPerRound,
+                   particleExplosionSettings.maxParticlesPerRound)),
+               (rnd.Next(
+                   particleExplosionSettings.minParticles,
+                   particleExplosionSettings.maxParticles)),
+               new Vector2(dropTexture.Width,
+                   dropTexture.Height),
+               particleSettings));
         }
 
         void SetPos(GameTime gameTime)
@@ -574,7 +631,7 @@ namespace FishPond
 
                 world = matIdentify * scale * matCam;
                 //Starter tegning - må bruke effect-objektet:
-                foreach (EffectPass pass in waterEffect.CurrentTechnique.Passes)
+                foreach (EffectPass pass in surfaceEffect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
                     // Angir primitivtype, aktuelle vertekser, en offsetverdi og antall 
@@ -693,7 +750,16 @@ namespace FishPond
 
             // Draw water
             DrawSurface();
-            water.Draw(ref spriteBatch);
+            for (int i = 0; i < explosions.Count; i++)
+                explosions[i].Draw(waterEffect, camera);
+            //parti
+            //Draw(waterEffect, camera);
+            //mama = (mama ? true : false);
+            //if (mama)
+            //  water.AddDrops(new Vector2(4, 5), 1, 0.000004f, 20f, gameTime);
+            //water.Draw(ref spriteBatch);
+            //mama = true;
+            //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, water.Drops, 0, water.Drops.Count, ParticleVertex.VertexDeclaration);
 
             // Count frames and show FPS
             frameCounter++;
