@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace PondLibs
 {
+    //Class for the first person camera
     public class FirstPersonCamera : Camera
     {
         public FirstPersonCamera(Game game)
@@ -21,6 +22,7 @@ namespace PondLibs
         public override void Update(GameTime gameTime)
         {
             movement = Vector3.Zero;
+            //Updates the positions when you click a button(asdw)
             if (input.KeyboardState.IsKeyDown(Keys.A))
                 movement.X--;
             if (input.KeyboardState.IsKeyDown(Keys.D))
@@ -30,8 +32,7 @@ namespace PondLibs
             if (input.KeyboardState.IsKeyDown(Keys.W))
                 movement.Z--;
 
-            //Sikrer oss at farta ikke øker dersom vi holder nede  
-            //både D og S samtidig (diagonal bevegelse): 
+            //Fixes that the speed on the player does not increase when both D and S is pressed.
             if (movement.LengthSquared() != 0)
                 movement.Normalize();
 
