@@ -1,0 +1,19 @@
+h1. FishPond
+
+This game is a shcool project in XNA 4.0. You play as a fish, eating other fish and getting points for each fish you eat, while growing in size to become the biggest of them all.
+
+h2. Acknowledge
+
+Unfortunately we're not good enough to make all the textures and things ourself, so there is copyrighted content in use here. We didn't ask permission and we are sorry if this is a problem. We don't encourage misuse of copyright, but we thought this to be an innocent school project. *If you own any copyright herein and want it removed, please issue a ticket on this project.*
+
+h2. Source links for the following files
+# "ShaderMove/ShaderMoveContent/movement.png":http://www.lalena.com/Games/BoidsInstructions.aspx
+# "ShaderMove/ShaderMoveContent/welcome.wmv":http://www.supermariobrothers.org/mario-music.html
+# "ShaderMove/ShaderMoveContent/welcome.wmv":http://www.wincustomize.com/explore/dream/3406/
+# "ShaderMove/ShaderMoveContent/pond-water-texture.jpg":http://fionadelalande.wordpress.com/a-childhood-home/pond-water-texture/
+# "ShaderMove/ShaderMoveContent/dome.x":http://www.riemers.net
+# "ShaderMove/ShaderMoveContent/cloupMap.jpg":http://www.riemers.net
+# "ShaderMove/ShaderMoveContent/effects.fx":http://www.riemers.net
+# "ShaderMove/ShaderMoveContent/Sheephead0.fbx":http://toucan.web.infoseek.co.jp/3DCG/3ds/FishModelsE.html
+# "ShaderMove/ShaderMoveContent/SheepT.bmp":http://toucan.web.infoseek.co.jp/3DCG/3ds/FishModelsE.html
+# "ShaderMove/ShaderMoveContent/bubble.png":http://www.freegreatdesign.com/icon/beautifully-transparent-bubble-png-icon-3137

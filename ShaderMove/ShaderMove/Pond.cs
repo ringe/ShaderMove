@@ -350,8 +350,8 @@ namespace FishPond
             fishMatrix = new Matrix[Player.bones.Count];
 
             // Load Opponents
-            Texture2D subT = Content.Load<Texture2D>(@"Content\steel");
-            sub = new SubMarine(subT, startPosition);
+            //Texture2D subT = Content.Load<Texture2D>(@"Content\steel");
+            sub = new SubMarine(wasdTexture, startPosition);
             opponents = new ArrayList();
 
             for (int i = 0; i < opponentCount; i++)
@@ -847,7 +847,7 @@ namespace FishPond
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            // Keypress timer
+            // Keypress timer for help screen
             timeSinceLastHelpRequest += gameTime.ElapsedGameTime;
 
             // Count frames
