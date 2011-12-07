@@ -104,6 +104,8 @@
     <Compile Include="PPPointLight.cs" />
     <Compile Include="PrelightingRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SeaWeed.cs" />
+    <Compile Include="Submarine.cs" />
     <Compile Include="Water.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

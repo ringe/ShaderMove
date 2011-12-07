@@ -33,8 +33,25 @@ float xPointSpriteSize;
 
 //------- Texture Samplers --------
 
+//------- Texture Samplers --------
 Texture xTexture;
-sampler TextureSampler = sampler_state { texture = <xTexture>; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};
+
+sampler TextureSampler = sampler_state { texture = <xTexture> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};Texture xTexture0;
+
+sampler TextureSampler0 = sampler_state { texture = <xTexture0> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = wrap; AddressV = wrap;};Texture xTexture1;
+
+sampler TextureSampler1 = sampler_state { texture = <xTexture1> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = wrap; AddressV = wrap;};Texture xTexture2;
+
+sampler TextureSampler2 = sampler_state { texture = <xTexture2> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};Texture xTexture3;
+
+sampler TextureSampler3 = sampler_state { texture = <xTexture3> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};Texture xReflectionMap;
+
+sampler ReflectionSampler = sampler_state { texture = <xReflectionMap> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};Texture xRefractionMap;
+
+sampler RefractionSampler = sampler_state { texture = <xRefractionMap> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};Texture xWaterBumpMap;
+
+sampler WaterBumpMapSampler = sampler_state { texture = <xWaterBumpMap> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = mirror; AddressV = mirror;};
+
 
 //------- Technique: Pretransformed --------
 
@@ -249,4 +266,54 @@ technique PointSprites
 		VertexShader = compile vs_2_0 PointSpriteVS();
 		PixelShader  = compile ps_2_0 PointSpritePS();
 	}
+}
+
+//------- Technique: SkyDome --------
+struct SDVertexToPixel
+{    
+    float4 Position         : POSITION;
+    float2 TextureCoords    : TEXCOORD0;
+    float4 ObjectPosition    : TEXCOORD1;
+};
+
+struct SDPixelToFrame
+{
+    float4 Color : COLOR0;
+};
+
+SDVertexToPixel SkyDomeVS( float4 inPos : POSITION, float2 inTexCoords: TEXCOORD0)
+{    
+    SDVertexToPixel Output = (SDVertexToPixel)0;
+    float4x4 preViewProjection = mul (xView, xProjection);
+    float4x4 preWorldViewProjection = mul (xWorld, preViewProjection);
+    
+    Output.Position = mul(inPos, preWorldViewProjection);
+    Output.TextureCoords = inTexCoords;
+    Output. ObjectPosition = inPos;
+    
+    return Output;    
+}
+
+SDPixelToFrame SkyDomePS(SDVertexToPixel PSIn)
+{
+    SDPixelToFrame Output = (SDPixelToFrame)0;        
+
+    float4 topColor = float4(0.3f, 0.3f, 0.8f, 1);    
+    float4 bottomColor = 1;    
+    
+    float4 baseColor = lerp(bottomColor, topColor, saturate((PSIn. ObjectPosition.y)/0.4f));
+    float4 cloudValue = tex2D(TextureSampler, PSIn.TextureCoords).r;
+    
+    Output.Color = lerp(baseColor,1, cloudValue);        
+
+    return Output;
+}
+
+technique SkyDome
+{
+    pass Pass0
+    {
+        VertexShader = compile vs_1_1 SkyDomeVS();
+        PixelShader = compile ps_2_0 SkyDomePS();
+    }
 }

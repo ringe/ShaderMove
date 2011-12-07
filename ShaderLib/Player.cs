@@ -16,13 +16,13 @@ namespace PondLibs
     {
         //En referanse til input-komponenten: 
         protected IInputHandler input;
-        private const float moveRate = 20.0f;
+        private const float moveRate = 30.0f;
         private float cameraYaw = 0.0f;
         private float cameraPitch = 0.0f;
-        private const float spinRate = 40.0f;
+        private const float spinRate = 100.0f;
 
-        public Player (ContentManager content, float sz, Vector3 pos, Game game)
-            : base(content, sz, pos) {
+        public Player (ContentManager content, Vector3 pos, Game game, float[,] height, float water)
+            : base(content, pos, height, water) {
             //Henter ut en referanse til input-handleren: 
             input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
@@ -37,70 +37,74 @@ namespace PondLibs
             //timeDelta = tiden mellom to kall på Update 
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // update position based on keys
-            movement = Vector3.Zero;
-            if (input.KeyboardState.IsKeyDown(Keys.A))
-                movement.X--; 
-            if (input.KeyboardState.IsKeyDown(Keys.D))
-                movement.X++;
-            if (input.KeyboardState.IsKeyDown(Keys.S))
+            if (Alive)
             {
-                movement.Z++;
-                movement.Y += cameraPitch/50;
-            }
-            if (input.KeyboardState.IsKeyDown(Keys.W))
-            {
-                movement.Z--;
-                movement.Y -= cameraPitch/50;
-            }
-             
-            if (input.KeyboardState.IsKeyDown(Keys.Left))
-                cameraYaw = cameraYaw + (spinRate * timeDelta);
-            if (input.KeyboardState.IsKeyDown(Keys.Right))
-                cameraYaw = cameraYaw - (spinRate * timeDelta);
+                // update position based on keys
+                movement = Vector3.Zero;
+                if (input.KeyboardState.IsKeyDown(Keys.A))
+                    cameraYaw = cameraYaw + (spinRate * timeDelta); //movement.X--;
+                if (input.KeyboardState.IsKeyDown(Keys.D))
+                    cameraYaw = cameraYaw - (spinRate * timeDelta); // movement.X++;
+                if (input.KeyboardState.IsKeyDown(Keys.S))
+                {
+                    movement.Z++;
+                    movement.Y += cameraPitch / 50;
+                }
+                if (input.KeyboardState.IsKeyDown(Keys.W))
+                {
+                    movement.Z--;
+                    movement.Y -= cameraPitch / 50;
+                }
 
-            if (cameraYaw > 360)
-                cameraYaw -= 360;
-            else if (cameraYaw < 0)
-                cameraYaw += 360;
+                //if (input.KeyboardState.IsKeyDown(Keys.Left))
+                //    cameraYaw = cameraYaw + (spinRate * timeDelta);
+                //if (input.KeyboardState.IsKeyDown(Keys.Right))
+                //    cameraYaw = cameraYaw - (spinRate * timeDelta);
 
-            //OPP/NED (PITCH): 
-            if (input.KeyboardState.IsKeyDown(Keys.Down))
-                cameraPitch = cameraPitch + (spinRate * timeDelta);
-            if (input.KeyboardState.IsKeyDown(Keys.Up))
-                cameraPitch = cameraPitch - (spinRate * timeDelta); 
-            if (cameraPitch > 89)
-                cameraPitch = 89;
-            else if (cameraPitch < -89)
-                cameraPitch = -89;
+                if (cameraYaw > 360)
+                    cameraYaw -= 360;
+                else if (cameraYaw < 0)
+                    cameraYaw += 360;
 
+                //OPP/NED (PITCH): 
+                if (input.KeyboardState.IsKeyDown(Keys.Down))
+                    cameraPitch = cameraPitch + (spinRate * timeDelta);
+                if (input.KeyboardState.IsKeyDown(Keys.Up))
+                    cameraPitch = cameraPitch - (spinRate * timeDelta);
+                if (cameraPitch > 89)
+                    cameraPitch = 89;
+                else if (cameraPitch < -89)
+                    cameraPitch = -89;
 
+                if (movement.LengthSquared() != 0)
+                    movement.Normalize();
 
-            if (movement.LengthSquared() != 0)
-                movement.Normalize();
+                // Posisjoner kamera: 
+                Matrix rotationMatrix;
 
-            // Posisjoner kamera: 
-            Matrix rotationMatrix;
+                //Rotasjonsmatrise om Y-aksen: 
+                Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
 
-            //Rotasjonsmatrise om Y-aksen: 
-            Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
+                //Legger til pitch dvs. rotasjon om Z‐aksen:
+                Rotation = Quaternion.CreateFromRotationMatrix(Matrix.CreateRotationZ(MathHelper.ToRadians(cameraPitch))
+                    * rotationMatrix
+                    * Matrix.CreateRotationY((float)(Math.PI * 6 / 4))
+                    );
 
-            //Legger til pitch dvs. rotasjon om Z‐aksen:
-            Rotation = Quaternion.CreateFromRotationMatrix(Matrix.CreateRotationZ(MathHelper.ToRadians(cameraPitch))
-                * rotationMatrix
-                * Matrix.CreateRotationY((float)(Math.PI * 6 / 4))
-                );
+                //FirstPersonCamera, endrer kameraets posisjon: 
+                movement *= (moveRate * timeDelta);
+                if (movement != Vector3.Zero)
+                {
+                    //Roterer movement-vektoren: 
+                    Vector3.Transform(ref movement, ref rotationMatrix, out movement);
 
-            //FirstPersonCamera, endrer kameraets posisjon: 
-            movement *= (moveRate * timeDelta);
-            if (movement != Vector3.Zero)
-            {
-                //Roterer movement-vektoren: 
-                Vector3.Transform(ref movement, ref rotationMatrix, out movement);
-
-                //Oppdaterer kameraposisjonen med move-vektoren:  
-                base.pos += movement;
+                    //Oppdaterer kameraposisjonen med move-vektoren:  
+                    base.pos += movement;
+                }
             }
         }
+
+
+        
     }
 }

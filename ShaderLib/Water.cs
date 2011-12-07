@@ -134,7 +134,7 @@ namespace PondLibs
         private ParticleVertex[] vertexes;
 
         // Konstruktør: 
-        public ParticleExplosion(GraphicsDevice graphicsDevice, Vector3 position, int lifeLeft, int roundTime, 
+        public ParticleExplosion(GraphicsDevice graphicsDevice, Vector3 position, int lifeLeft, int roundTime,
             int numParticlesPerRound, int maxParticles, Vector2 textureSize, ParticleSettings particleSettings)
         {
             this.position = position;
@@ -252,10 +252,16 @@ namespace PondLibs
             }
         }
     }
-}
 
-    //public class Water
-    //{
+
+    public class Bubbles
+    {
+        public Bubbles()
+        {
+
+        }
+    }
+}
     //    Random randomizer = new Random();
     //    private List<Drop> dropList;
     //    private Texture2D dropTexture;

@@ -14,29 +14,6 @@ using PondLibs;
 
 namespace FishPond
 {
-    struct MittVerteksFormat
-    {
-        private Vector3 position;
-        private Color color;
-        private Vector2 texcoord;
-        private Vector3 normal;
-
-        public MittVerteksFormat(Vector3 position, Color color, Vector2 texcoord, Vector3 normal)
-        {
-            this.position = position;
-            this.color = color;
-            this.texcoord = texcoord;
-            this.normal = normal;
-        }
-
-        public readonly static VertexDeclaration VertexDeclaration = new VertexDeclaration(
-            new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
-            new VertexElement(sizeof(float) * 3, VertexElementFormat.Color, VertexElementUsage.Color, 0),
-            new VertexElement(sizeof(float) * 3, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-            new VertexElement(sizeof(float) * 4, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0)
-        );
-    }
-
     /// <summary>
     /// This is the main type for your game
     /// </summary>
@@ -75,13 +52,10 @@ namespace FishPond
         VertexPositionColorTexture[] cubeVertices;
         VertexPositionColorTexture[] cubeVertices2;
         VertexPositionColorTexture[] surfaceVertices;
-        VertexPositionColor[] xAxis = new VertexPositionColor[2];
-        VertexPositionColor[] yAxis = new VertexPositionColor[2];
-        VertexPositionColor[] zAxis = new VertexPositionColor[2];
 
         // Textures
-        Texture2D texture1;
-        Texture2D texture2;
+        Model skyDome;
+        Texture2D cloudTexture;
         Texture2D surfaceTexture;
 
         // Shaderstuff
@@ -93,8 +67,6 @@ namespace FishPond
 
         // WVP-matrisene:
         private Matrix world;
-        private Matrix projection;
-        private Matrix view;
 
         // Boundaries
         private const float BOUNDARY = 80.0f;
@@ -106,8 +78,11 @@ namespace FishPond
         TimeSpan fpsTime = TimeSpan.Zero;
         int frameRate = 0;
         int frameCounter = 0;
-        private int terrainWidth = 4;
-        private int terrainHeight = 3;
+
+        // Terrain vars
+        private int terrainWidth;
+        private int terrainHeight;
+        private float terrainPeak;
         private float[,] heightData;
         private int[] terrainIndices;
         private VertexPositionColorNormal[] terrainVertices;
@@ -129,18 +104,23 @@ namespace FishPond
 
         // Water
         //private Water water;
-        List<ParticleExplosion> explosions = new List<ParticleExplosion>();
-        ParticleExplosionSettings particleExplosionSettings = new ParticleExplosionSettings();
-        ParticleSettings particleSettings = new ParticleSettings(); 
-
-        // Start it all here
-        private Vector3 startPosition = new Vector3(76, 20, 70);
-        private bool mama;
+        private List<ParticleExplosion> explosions = new List<ParticleExplosion>();
+        private ParticleExplosionSettings particleExplosionSettings = new ParticleExplosionSettings();
+        private ParticleSettings particleSettings = new ParticleSettings();
         private Texture2D dropTexture;
         private Effect waterEffect;
+        private float waterLevel = 0.8f;
 
-        //Randomness 
+        // Start it all here
+        private Vector3 startPosition = new Vector3(76, 60, 70);
+        private int opponentCount = 20;
+
+        //Randomness
         public Random rnd = new Random();
+        private SubMarine sub;
+        private bool showHelp;
+        private Texture2D wasdTexture;
+        private TimeSpan timeSinceLastHelpRequest;
 
         public Pond()
         {
@@ -171,6 +151,8 @@ namespace FishPond
             InitDevice();
             camera.Initialize();
             InitVertices();
+
+            timeSinceLastHelpRequest = new TimeSpan();
         }
 
 
@@ -236,20 +218,14 @@ namespace FishPond
                     Color.Red, new Vector2(max,min))
             };
 
-            //To trekanter
-
+            // Surface vertices
             surfaceVertices = new VertexPositionColorTexture[4]
             {
-            new VertexPositionColorTexture(new Vector3(-1,  1.3f,  -1),
-                    Color.Blue, new Vector2(min,max)),
-                new VertexPositionColorTexture(new Vector3( 1,  1.3f,  -1),
-                    Color.Blue, new Vector2(min,min)),
-                new VertexPositionColorTexture(new Vector3(-1, 1.3f,  1),
-                    Color.Red, new Vector2(max,max)),
-                new VertexPositionColorTexture(new Vector3(1, 1.3f,  1),
-                    Color.Red, new Vector2(max,min))
-            };
-           
+                new VertexPositionColorTexture(new Vector3(-1, waterLevel, -1), Color.Blue, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3( 1, waterLevel, -1), Color.Blue, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1, waterLevel,  1), Color.Blue, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(1, waterLevel,  1), Color.Blue, new Vector2(max,min))
+            };  
         }
 
         private void SetUpVertices()
@@ -331,8 +307,11 @@ namespace FishPond
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
 
+            //Help
+            wasdTexture = Content.Load<Texture2D>(@"Content\movement");
+
             // Water
-            dropTexture = Content.Load<Texture2D>(@"Content\pond-water-texture");
+            dropTexture = Content.Load<Texture2D>(@"Content\bubble");
             waterEffect = Content.Load<Effect>(@"Content\Particle2");
             waterEffect.CurrentTechnique =
             waterEffect.Techniques["Technique1"];
@@ -341,7 +320,7 @@ namespace FishPond
             surfaceTexture = content.Load<Texture2D>(@"Content\pond-water-texture");
 
             // Position mouse at the center of the game window
-            Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+            //Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
 
             effect = Content.Load<Effect>(@"Content/effects");
             effect2 = Content.Load<Effect>(@"Content/MinEffekt2");
@@ -365,20 +344,25 @@ namespace FishPond
             CopyToBuffers();
 
             // Load Player
-            Player = new Player(content, 5, startPosition, this);
+            Player = new Player(content, startPosition, this, heightData, terrainPeak*waterLevel);
             fishMatrix = new Matrix[Player.bones.Count];
 
-            //Load Opponents
+            // Load Opponents
+            Texture2D subT = Content.Load<Texture2D>(@"Content\steel");
+            sub = new SubMarine(subT, startPosition);
             opponents = new ArrayList();
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    opponents.Add(new Fish(content, heightData, terrainHeight));
-            //    System.Threading.Thread.Sleep(50);
-            //}
-            
-            texture1 = content.Load<Texture2D>(@"Content\cloudMap");
+            for (int i = 0; i < opponentCount; i++)
+            {
+                opponents.Add(new Fish(content, heightData, terrainPeak*waterLevel));
+                System.Threading.Thread.Sleep(50);
+            }
+
+            skyDome = Content.Load<Model>(@"Content\dome");
+            skyDome.Meshes[0].MeshParts[0].Effect = effect.Clone();
+            cloudTexture = content.Load<Texture2D>(@"Content\cloudMap");
         }
 
+        // Load heightdata from Texture2D heightmap
         private void LoadHeightData(Texture2D heightMap)
         {
             terrainWidth = heightMap.Width;
@@ -390,9 +374,11 @@ namespace FishPond
             heightData = new float[terrainWidth, terrainHeight];
             for (int x = 0; x < terrainWidth; x++)
                 for (int y = 0; y < terrainHeight; y++)
-                    heightData[x, y] = heightMapColors[x + y * terrainWidth].R / 5.0f;
-
-            //camera.setHeight(ref heightData);
+                {
+                    float point = heightMapColors[x + y * terrainWidth].R / 2.80f;
+                    terrainPeak = (terrainPeak > point) ? terrainPeak : point;
+                    heightData[x, y] = point;
+                }
         }
 
         /// <summary>
@@ -429,20 +415,21 @@ namespace FishPond
             camera.Position = Player.pos;
             camera.Update(gameTime);
 
-            
-            //water.UpdateDrops(gameTime);
-            // Update drops 
-            UpdateDrops(gameTime); 
+            // TODO Update drops 
+            UpdateBubbles(gameTime);
+
+            if (input.KeyboardState.IsKeyDown(Keys.H))
+                if (timeSinceLastHelpRequest.TotalMilliseconds > 100)
+                {
+                    timeSinceLastHelpRequest = new TimeSpan();
+                    showHelp = !showHelp;
+                }
 
             base.Update(gameTime);
         }
 
-
-        protected void UpdateDrops(GameTime gameTime)
+        protected void UpdateBubbles(GameTime gameTime)
         {
-            KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.B)) //Bang!! 
-                this.addExplotion();
             // Loop through and update explosions 
             for (int i = 0; i < explosions.Count; ++i)
             {
@@ -456,10 +443,10 @@ namespace FishPond
             }
         }
 
-        private void addExplotion()
+        private void MakeBubbles(Vector3 pos)
         {
             explosions.Add(new ParticleExplosion(GraphicsDevice,
-               startPosition,
+               pos,
                (rnd.Next(
                    particleExplosionSettings.minLife,
                    particleExplosionSettings.maxLife)),
@@ -545,26 +532,49 @@ namespace FishPond
         }
         #endregion
 
-        /// <summary>
-        /// Draw the axis lines.
-        /// </summary>
-        private void DrawAxis()
-        {
-            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, xAxis, 0, 1);
-                GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, yAxis, 0, 1);
-                GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, zAxis, 0, 1);
-            }
-        }
-
         private void DrawOverlayText(string text, int x, int y)
         {
             spriteBatch.Begin();
             //Skriver teksten to ganger, først med svart bakgrunn og deretter med  hvitt, en piksel ned og til venstre, slik at teksten blir mer lesbar.
             spriteBatch.DrawString(spriteFont, text, new Vector2(x, y), Color.Black);
             spriteBatch.DrawString(spriteFont, text, new Vector2(x - 1, y - 1), Color.White);
+            spriteBatch.End();
+            //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.RasterizerState = RasterizerState.CullNone; //Avhenger av hva du ønsker
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
+        }
+
+        private void DrawHelpScreen()
+        {
+            Rectangle retval = new Rectangle(
+                GraphicsDevice.Viewport.X + GraphicsDevice.Viewport.Width / 3,
+                GraphicsDevice.Viewport.Y + GraphicsDevice.Viewport.Height * 1/ 4,
+                wasdTexture.Width,
+                wasdTexture.Height);
+
+            String title = "How to Play:";
+            String helpheader = " (H) Show/hide this screen.";
+            String helptext = "  Movement       Look up/down";
+
+            Vector2 pos = spriteFont.MeasureString(title);
+            pos.X = graphics.GraphicsDevice.Viewport.Height / 2 - (pos.X / 4);
+            pos.Y = graphics.GraphicsDevice.Viewport.Height / 2 - 200;
+
+            spriteBatch.Begin();
+            // Write header.
+            spriteBatch.DrawString(spriteFont, helpheader, pos, Color.Black);
+            spriteBatch.DrawString(spriteFont, helpheader, new Vector2(pos.X - 1, pos.Y - 1), Color.White);
+
+            // Draw keys, write explanation
+            spriteBatch.Draw(wasdTexture, retval, Color.White);
+            pos.X = retval.X;
+            pos.Y = retval.Y + retval.Height + 10;
+            spriteBatch.DrawString(spriteFont, helptext, pos, Color.Black);
+            spriteBatch.DrawString(spriteFont, helptext, new Vector2(pos.X - 1, pos.Y - 1), Color.White);
+            
+            
             spriteBatch.End();
             //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
             GraphicsDevice.BlendState = BlendState.Opaque;
@@ -583,7 +593,7 @@ namespace FishPond
 
             world = matIdentify * scale * matCam;
 
-            GraphicsDevice.Textures[0] = texture1;
+            GraphicsDevice.Textures[0] = cloudTexture;
 
             effectWorld.SetValue(world);
             effectView.SetValue(camera.View);
@@ -600,21 +610,21 @@ namespace FishPond
 
         protected void DrawSurface()
         {
+            GraphicsDevice.Textures[0] = surfaceTexture;
+
+            GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+
+            BlendState bs = new BlendState();
+            bs.ColorSourceBlend = Blend.DestinationColor;
+            bs.ColorDestinationBlend = Blend.SourceColor;
+            bs.AlphaBlendFunction = BlendFunction.Add;
+            GraphicsDevice.BlendState = bs;
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
             // Surface
             for (int i = 0; i <= 2; i++)
             {
                 effectPos.SetValue(mfRed-((i-1)*2));
-
-                GraphicsDevice.Textures[0] = surfaceTexture;
-
-                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-
-                BlendState bs = new BlendState();
-                bs.ColorSourceBlend = Blend.DestinationColor;
-                bs.ColorDestinationBlend = Blend.SourceColor;
-                bs.AlphaBlendFunction = BlendFunction.Add;
-                GraphicsDevice.BlendState = bs;
-                GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
 
                 effectWaterWorld.SetValue(world);
                 effectWaterView.SetValue(camera.View);
@@ -626,7 +636,7 @@ namespace FishPond
                 Matrix matIdentify = Matrix.Identity;
                 Matrix scale;
 
-                Matrix.CreateScale(terrainWidth, terrainHeight / 10, terrainWidth, out scale);
+                Matrix.CreateScale(terrainWidth, terrainPeak, terrainWidth, out scale);
                 Matrix matCam = Matrix.CreateTranslation(camera.Position.X, 0.0f, camera.Position.Z);
 
                 world = matIdentify * scale * matCam;
@@ -652,7 +662,6 @@ namespace FishPond
             // Sentrer terreng i origo
             Matrix translate = Matrix.CreateTranslation(-terrainWidth / 2.0f, 0, terrainHeight / 2.0f);
 
-
             world = matIdentify * translate;
 
             effect.CurrentTechnique = effect.Techniques["Colored"];
@@ -674,6 +683,41 @@ namespace FishPond
             }
         }
 
+        private void DrawSub()
+        {
+            GraphicsDevice.Textures[0] = sub.Texture;
+
+            GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+
+            BlendState bs = new BlendState();
+            bs.ColorSourceBlend = Blend.DestinationColor;
+            bs.ColorDestinationBlend = Blend.SourceColor;
+            bs.AlphaBlendFunction = BlendFunction.Add;
+            GraphicsDevice.BlendState = bs;
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+            Matrix trans;
+
+            trans = Matrix.CreateTranslation(sub.Position);
+        
+            Matrix matIdentify = Matrix.Identity;
+            Matrix scale;
+
+            Matrix.CreateScale(5, 5, 15, out scale);
+
+            world = matIdentify * scale * trans;
+
+            //Starter tegning
+            foreach (EffectPass pass in effect2.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, sub.Vertices, 0, 1329, VertexPositionColorTextureNormal.VertexDeclaration);
+            }
+
+            GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+        }
+
         private void DrawFish(Fish fish)
         {
             Matrix world = Matrix.Identity;
@@ -681,9 +725,7 @@ namespace FishPond
             effectView.SetValue(camera.View);
             effectProjection.SetValue(camera.Projection);
 
-            Matrix trans;
-
-            trans = Matrix.CreateTranslation(fish.pos);
+            Matrix trans = Matrix.CreateTranslation(fish.pos);
         
             //back fin
             fish.bones[24].Transform = Matrix.CreateRotationY(-animFactor);
@@ -700,11 +742,13 @@ namespace FishPond
 
             fish.CopyAbsoluteBoneTransformsTo(ref fishMatrix);
 
+            world *= fish.scale * Matrix.CreateFromQuaternion(fish.Rotation) * trans;
+            fish.World = world;
             foreach (ModelMesh mesh in fish.meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    effect.World = fishMatrix[mesh.ParentBone.Index] * fish.scale * Matrix.CreateFromQuaternion(fish.Rotation) * trans;
+                    effect.World = fishMatrix[mesh.ParentBone.Index] * world;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();
@@ -720,8 +764,41 @@ namespace FishPond
         public void drawOpponents()
         {
             Object[] p = opponents.ToArray();
-            for (int i = 0; i < p.Length; i++)
-                DrawFish((Fish)p[i]);
+            for (int i = 0; i < p.Length; i++) {
+                Fish fish = (Fish)p[i];
+                if (Player.hits(fish, fish.World) || fish.hits(Player, Player.World))
+                {
+                    MakeBubbles(fish.pos);
+                    opponents.Remove(fish);
+                    if (opponents.Count == 0)
+                        Player.Alive = false;
+                }
+                else
+                    DrawFish(fish);
+            }
+        }
+
+        private void DrawSkyDome()
+        {
+            Matrix[] modelTransforms = new Matrix[skyDome.Bones.Count];
+            skyDome.CopyAbsoluteBoneTransformsTo(modelTransforms);
+            
+
+            Matrix wMatrix = Matrix.CreateTranslation(0, -0.3f, 0) * Matrix.CreateScale(200) * Matrix.CreateTranslation(camera.Position);
+            foreach (ModelMesh mesh in skyDome.Meshes)
+            {
+                foreach (Effect currentEffect in mesh.Effects)
+                {
+                    Matrix worldMatrix = modelTransforms[mesh.ParentBone.Index] * wMatrix;
+                    currentEffect.CurrentTechnique = currentEffect.Techniques["SkyDome"];
+                    currentEffect.Parameters["xWorld"].SetValue(worldMatrix);
+                    currentEffect.Parameters["xView"].SetValue(camera.View);
+                    currentEffect.Parameters["xProjection"].SetValue(camera.Projection);
+                    currentEffect.Parameters["xTexture"].SetValue(cloudTexture);
+                    currentEffect.Parameters["xEnableLighting"].SetValue(true);
+                }
+                mesh.Draw();
+            }
         }
 
         /// <summary>
@@ -730,6 +807,12 @@ namespace FishPond
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            // Keypress timer
+            timeSinceLastHelpRequest += gameTime.ElapsedGameTime;
+
+            // Count frames
+            frameCounter++;
+
             RasterizerState rasterizerState1 = new RasterizerState();
             rasterizerState1.CullMode = CullMode.None;
             rasterizerState1.FillMode = FillMode.Solid;
@@ -739,31 +822,50 @@ namespace FishPond
 
             //Setter world=I:
             world = Matrix.Identity;
-            
-            DrawCube(cubeVertices, texture1);
-            DrawCube(cubeVertices2, texture2);
 
-            DrawFish(Player);
-            drawOpponents();
+            // Player is alive and swimming
+            if (Player.Alive)
+            {
+                //DrawCube(cubeVertices, cloudTexture);
+                //DrawCube(cubeVertices2, texture2);
+                //DrawSkyDome();
 
-            DrawTerrain();
+                // Draw Player and opponents
+                DrawFish(Player);
+                drawOpponents();
 
-            // Draw water
-            DrawSurface();
-            for (int i = 0; i < explosions.Count; i++)
-                explosions[i].Draw(waterEffect, camera);
-            //parti
-            //Draw(waterEffect, camera);
-            //mama = (mama ? true : false);
-            //if (mama)
-            //  water.AddDrops(new Vector2(4, 5), 1, 0.000004f, 20f, gameTime);
-            //water.Draw(ref spriteBatch);
-            //mama = true;
-            //GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, water.Drops, 0, water.Drops.Count, ParticleVertex.VertexDeclaration);
+                DrawSub(); // TODO: buggy - sub under terrain and doesn't look like a sub at all
+                DrawTerrain();
 
-            // Count frames and show FPS
-            frameCounter++;
-            DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
+                // Draw water
+                DrawSurface();
+                for (int i = 0; i < explosions.Count; i++)
+                    explosions[i].Draw(waterEffect, camera);
+            }
+            else
+            {   // Player died
+                showHelp = false;
+                DrawFish(Player);
+                String diemessage;
+                if (opponents.Count == 0)
+                    diemessage = "Congratulations, fatty!";
+                else
+                    diemessage = "To Eat or Get Eaten: You Died!";
+                Vector2 pos = spriteFont.MeasureString(diemessage);
+                pos.X = graphics.GraphicsDevice.Viewport.Height / 2 - (pos.X/4);
+                pos.Y = graphics.GraphicsDevice.Viewport.Height / 2;
+                DrawOverlayText(diemessage, (int)pos.X, (int)pos.Y);
+            }
+
+            if (showHelp)
+                DrawHelpScreen();
+            else {
+                // Show FPS
+                DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
+
+                // Print score
+                DrawOverlayText(string.Format("Score: {0}", Player.score), 50, 20);
+            }
 
             base.Draw(gameTime);
         }
