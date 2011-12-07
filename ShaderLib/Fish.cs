@@ -11,6 +11,9 @@ using Microsoft.Xna.Framework.Media;
 
 namespace PondLibs
 {
+    /// <summary>
+    /// The Fish is the representative of the players in this game. Eat or be eaten.
+    /// </summary>
     public class Fish
     {
         private const float moveRate = 20.0f;
@@ -23,6 +26,7 @@ namespace PondLibs
         private Model fish;
         private Matrix[] fishMatrix;
         private Matrix size;
+        private float lastSize;
         private Vector3 position;
         private Vector3 startPos;
         private Quaternion rotation = Quaternion.Identity;
@@ -32,10 +36,11 @@ namespace PondLibs
         // Store world between draws for collision detection
         private Matrix world;
 
-        public Matrix scale { get { return size; } }
+        // Return Scale Matrix
+        public Matrix Scale { get { return size; } }
 
-        // Set position TODO: doesn't work with the heightmap (scale sync issue)
-        public Vector3 pos {
+        // Update position, restrict movement to water.
+        public Vector3 Position {
             get { return position; }
             set {
                 newPos = value;
@@ -43,46 +48,68 @@ namespace PondLibs
                 int z = (int)newPos.Z;
                 if (newPos.Y > waterLevel)
                     newPos.Y = waterLevel;
-                try
-                {
+
+                // Attempt to get height of current position
+                try {
                     if (newPos.Y < heightMap[x + terrainX / 2, -z + terrainZ / 2])
                         newPos.Y = heightMap[x + terrainX / 2, -z + terrainZ / 2];
                 }
-                catch { // no problem, we'll kill you outside the terrain later
-                }
+                catch { }// no problem, we'll kill you outside the terrain later
+
+                // Don't allow the fish to leave water.
+                if (newPos.Y > waterLevel) return;
+
+                // Don't leave outside the terrain - TODO if issue
+                //if (terrainX/2 < newPos.X || newPos.X > -terrainX/2) return;
+                //if (newPos.Z > terrainZ/2 || newPos.Z/2 < -terrainZ) return;
+
+                // Update position.
                 position = newPos;
             }
         }
         public ModelMeshCollection meshes { get { return fish.Meshes; } }
         public Matrix[] matrix { get { return fishMatrix; } }
         public ModelBoneCollection bones { get { return fish.Bones; } }
+
+        // return world matrix
         public Matrix World
         {
             get { return world; }
             set { world = value; }
         }
+
+        // Retrun Bounding Sphere
         public BoundingSphere Sphere { get { return boundingSphere; } }
 
         // Score for Player
-        private int points;
+        private float points;
         private bool dead;
         
+        // Show public score and change size when given more points
         public int score { 
-            get { return points; }
-            set {
-                points += value;
-                size *= Matrix.CreateScale(1.0f + (float)points/1000.0f);
+            get { return (int)points; }
+            set
+            {
+                points += (value / 10.0f);
+                float newSize = points / 20.0f;
+                if (newSize > lastSize) // Change size?
+                    if (newSize > 6f) newSize = 6f; // Not any bigger than this
+                        size = Matrix.CreateScale(newSize); // New size.
             }
         }
+
+        // Is this Fish alive?
         public Boolean Alive
         {
             get { return !dead; }
             set { dead = false; }
         }
 
-        public void CopyAbsoluteBoneTransformsTo(ref Matrix[] mtr)
+        // Public access to the rotation variable
+        public Quaternion Rotation
         {
-            fish.CopyAbsoluteBoneTransformsTo(mtr);
+            get { return rotation; }
+            set { rotation = value; }
         }
 
         // Constructor for player fish
@@ -99,9 +126,11 @@ namespace PondLibs
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             // Set starting size
-            points = 30;
-            size = Matrix.CreateScale(points/10);
+            points = 38;
+            lastSize = points / 20.0f;
+            size = Matrix.CreateScale(lastSize);
 
+            // Set starting position and create bounding sphere
             startPos = position = pos;
             createBoundingSphere();
         }
@@ -120,36 +149,47 @@ namespace PondLibs
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             // Set the size of the opponent
-            points = r.Next(5, 50);
-            size = Matrix.CreateScale(points/10);
+            points = r.Next(20, 80);
+            lastSize = points / 20.0f;
+            size = Matrix.CreateScale(lastSize);
 
-            // Get the terrain factors
+            // Calculate the terrain factors
             int teX = terrainX / 2;
             int teZ = terrainZ / 2;
 
+            // Generate a random position under the surface, over the sea floor
             int x = 0, z = 0; float y = 0.0f;
-            //while (y > waterLevel)
             while (y == 0.0f)
             {
+                // random x and y
                 x = r.Next(-teX, teX);
                 z = r.Next(-teZ, teZ);
 
-                float h = height[x+teX-1, -z+teZ-1];
+                // find height, catch out of range to re-run position
+                float h = 0.0f;
+                try
+                {
+                    h = height[x + teX - 1, -z + teZ - 1];
+                } catch { }
 
-                if (h < waterLevel)
+                // if the height found is below the water level, we're in the water
+                // otherwise, re-run position
+                if (h < waterLevel && h != 0.0f)
                     y = (waterLevel - h) * (float)r.NextDouble() + h;
             }
 
+            // Set starting position and create bounding sphere
             startPos = position = new Vector3(x, y, z);
             createBoundingSphere();
         }
 
-        public Quaternion Rotation
-        { 
-            get { return rotation; }
-            set { rotation = value; }
+        // Copy bonetransforms to matrix
+        public void CopyAbsoluteBoneTransformsTo(ref Matrix[] mtr)
+        {
+            fish.CopyAbsoluteBoneTransformsTo(mtr);
         }
 
+        // Create a bounding sphere for collision detection
         private void createBoundingSphere()
         {
             BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);

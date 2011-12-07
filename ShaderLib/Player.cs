@@ -99,7 +99,7 @@ namespace PondLibs
                     Vector3.Transform(ref movement, ref rotationMatrix, out movement);
 
                     //Oppdaterer kameraposisjonen med move-vektoren:  
-                    base.pos += movement;
+                    base.Position += movement;
                 }
             }
         }
