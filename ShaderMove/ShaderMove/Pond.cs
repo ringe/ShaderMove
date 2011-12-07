@@ -80,8 +80,8 @@ namespace FishPond
         int frameCounter = 0;
 
         // Terrain vars
-        private int terrainWidth;
-        private int terrainHeight;
+        private int terrainSizeX;
+        private int terrainSizeZ;
         private float terrainPeak;
         private float[,] heightData;
         private int[] terrainIndices;
@@ -150,7 +150,7 @@ namespace FishPond
             base.Initialize();
             InitDevice();
             camera.Initialize();
-            InitVertices();
+            InitCubeVertices();
 
             timeSinceLastHelpRequest = new TimeSpan();
         }
@@ -175,7 +175,7 @@ namespace FishPond
         /// <summary>
         /// Prepare the object vertices
         /// </summary>
-        protected void InitVertices()
+        protected void InitCubeVertices()
         {
             // Initialize a Cube
             float min = 0.001f; float max = 0.999f;
@@ -219,14 +219,14 @@ namespace FishPond
             };
         }
 
-        private void SetUpVertices()
+        private void SetTerrainVertices()
         {
 
             float minHeight = float.MaxValue;
             float maxHeight = float.MinValue;
-            for (int x = 0; x < terrainWidth; x++)
+            for (int x = 0; x < terrainSizeX; x++)
             {
-                for (int y = 0; y < terrainHeight; y++)
+                for (int y = 0; y < terrainSizeZ; y++)
                 {
                     if (heightData[x, y] < minHeight)
                         minHeight = heightData[x, y];
@@ -235,37 +235,37 @@ namespace FishPond
                 }
             }
 
-            terrainVertices = new VertexPositionColorNormal[terrainWidth * terrainHeight];
-            for (int x = 0; x < terrainWidth; x++)
+            terrainVertices = new VertexPositionColorNormal[terrainSizeX * terrainSizeZ];
+            for (int x = 0; x < terrainSizeX; x++)
             {
-                for (int y = 0; y < terrainHeight; y++)
+                for (int y = 0; y < terrainSizeZ; y++)
                 {
-                    terrainVertices[x + y * terrainWidth].Position = new Vector3(x, heightData[x, y], -y);
+                    terrainVertices[x + y * terrainSizeX].Position = new Vector3(x, heightData[x, y], -y);
 
                     if (heightData[x, y] < minHeight + (maxHeight - minHeight) / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.DarkGray;
+                        terrainVertices[x + y * terrainSizeX].Color = Color.DarkGray;
                     else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 2 / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.DarkBlue;
+                        terrainVertices[x + y * terrainSizeX].Color = Color.DarkBlue;
                     else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 3 / 4)
-                        terrainVertices[x + y * terrainWidth].Color = Color.Blue;
+                        terrainVertices[x + y * terrainSizeX].Color = Color.Blue;
                     else
-                        terrainVertices[x + y * terrainWidth].Color = Color.SandyBrown;
+                        terrainVertices[x + y * terrainSizeX].Color = Color.SandyBrown;
                 }
             }
         }
 
-        private void SetUpIndices()
+        private void SetTerrainIndices()
         {
-            terrainIndices = new int[(terrainWidth - 1) * (terrainHeight - 1) * 6];
+            terrainIndices = new int[(terrainSizeX - 1) * (terrainSizeZ - 1) * 6];
             int counter = 0;
-            for (int y = 0; y < terrainHeight - 1; y++)
+            for (int y = 0; y < terrainSizeZ - 1; y++)
             {
-                for (int x = 0; x < terrainWidth - 1; x++)
+                for (int x = 0; x < terrainSizeX - 1; x++)
                 {
-                    int lowerLeft = x + y * terrainWidth;
-                    int lowerRight = (x + 1) + y * terrainWidth;
-                    int topLeft = x + (y + 1) * terrainWidth;
-                    int topRight = (x + 1) + (y + 1) * terrainWidth;
+                    int lowerLeft = x + y * terrainSizeX;
+                    int lowerRight = (x + 1) + y * terrainSizeX;
+                    int topLeft = x + (y + 1) * terrainSizeX;
+                    int topRight = (x + 1) + (y + 1) * terrainSizeX;
 
                     terrainIndices[counter++] = topLeft;
                     terrainIndices[counter++] = lowerRight;
@@ -278,7 +278,7 @@ namespace FishPond
             }
         }
 
-        private void CopyToBuffers()
+        private void CopyTerrainToBuffers()
         {
             myVertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColorNormal.VertexDeclaration, terrainVertices.Length, BufferUsage.WriteOnly);
             myVertexBuffer.SetData(terrainVertices);
@@ -329,14 +329,14 @@ namespace FishPond
             Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
             LoadHeightData(heightMap);
 
-            SetUpVertices();
-            SetUpIndices();
+            SetTerrainVertices();
+            SetTerrainIndices();
             CalculateNormals();
-            CopyToBuffers();
+            CopyTerrainToBuffers();
 
             startPosition = new Vector3(0, waterLevel-3, 0);
             // Load Player
-            Player = new Player(content, startPosition, this, heightData, waterLevel);
+            Player = new Player(content, startPosition, this, heightData, waterLevel, terrainSizeX, terrainSizeZ);
             fishMatrix = new Matrix[Player.bones.Count];
 
             // Load Opponents
@@ -345,7 +345,7 @@ namespace FishPond
             opponents = new ArrayList();
             for (int i = 0; i < opponentCount; i++)
             {
-                opponents.Add(new Fish(content, heightData, waterLevel));
+                opponents.Add(new Fish(content, heightData, waterLevel, terrainSizeX, terrainSizeZ));
                 System.Threading.Thread.Sleep(50);
             }
 
@@ -357,17 +357,17 @@ namespace FishPond
         // Load heightdata from Texture2D heightmap
         private void LoadHeightData(Texture2D heightMap)
         {
-            terrainWidth = heightMap.Width;
-            terrainHeight = heightMap.Height;
+            terrainSizeX = heightMap.Width;
+            terrainSizeZ = heightMap.Height;
 
-            Color[] heightMapColors = new Color[terrainWidth * terrainHeight];
+            Color[] heightMapColors = new Color[terrainSizeX * terrainSizeZ];
             heightMap.GetData(heightMapColors);
 
-            heightData = new float[terrainWidth, terrainHeight];
-            for (int x = 0; x < terrainWidth; x++)
-                for (int y = 0; y < terrainHeight; y++)
+            heightData = new float[terrainSizeX, terrainSizeZ];
+            for (int x = 0; x < terrainSizeX; x++)
+                for (int y = 0; y < terrainSizeZ; y++)
                 {
-                    float point = heightMapColors[x + y * terrainWidth].R / 2.80f;
+                    float point = heightMapColors[x + y * terrainSizeX].R / 2.80f;
                     terrainPeak = (terrainPeak > point) ? terrainPeak : point;
                     heightData[x, y] = point;
                 }
@@ -551,6 +551,21 @@ namespace FishPond
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
+        // Debug position vs heightmap
+        private void DrawHeightVsPos()
+        {
+            int x = (int)Player.pos.X;
+            int z = (int)Player.pos.Z;
+            float y = Player.pos.Y;
+            float h = 0;
+            try
+            {
+                h = heightData[x+133, -z+133];
+            }
+            catch { }
+            DrawOverlayText(string.Format("X: {0} Y: {1} Z: {2}, H: {3}", x, y, z, h), 50, 60);
+        }
+
         private void DrawHelpScreen()
         {
             Rectangle retval = new Rectangle(
@@ -593,7 +608,7 @@ namespace FishPond
             Matrix matIdentify = Matrix.Identity;
             Matrix scale;
 
-            Matrix.CreateScale(terrainWidth, terrainHeight, terrainWidth, out scale);
+            Matrix.CreateScale(terrainSizeX, terrainSizeZ, terrainSizeX, out scale);
             Matrix matCam = Matrix.CreateTranslation(camera.Position.X, 0.0f, camera.Position.Z);
 
             world = matIdentify * scale * matCam;
@@ -638,7 +653,7 @@ namespace FishPond
                 Indices = new int[6] { 0, 1, 2, 2, 1, 3 };
 
                 Matrix matIdentify = Matrix.Identity;
-                Matrix scale = Matrix.CreateScale(terrainWidth, terrainPeak, terrainWidth);
+                Matrix scale = Matrix.CreateScale(terrainSizeX, terrainPeak, terrainSizeX);
 
                 world = matIdentify * scale;
                 // Tegner overflaten
@@ -657,7 +672,7 @@ namespace FishPond
         {
             Matrix matIdentify = Matrix.Identity;
             // Sentrer terreng i origo
-            Matrix translate = Matrix.CreateTranslation(-terrainWidth / 2.0f, 0, terrainHeight / 2.0f);
+            Matrix translate = Matrix.CreateTranslation(-terrainSizeX / 2.0f, 0, terrainSizeZ / 2.0f);
 
             world = matIdentify * translate;
 
@@ -855,8 +870,12 @@ namespace FishPond
             }
 
             if (showHelp)
+            {
                 DrawHelpScreen();
-            else {
+                //DrawHeightVsPos();
+            }
+            else
+            {
                 // Show FPS
                 DrawOverlayText(string.Format("FPS: {0}", frameRate), 5, 2);
 

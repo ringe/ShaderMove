@@ -21,14 +21,14 @@ namespace PondLibs
         private float cameraPitch = 0.0f;
         private const float spinRate = 100.0f;
 
-        public Player (ContentManager content, Vector3 pos, Game game, float[,] height, float water)
-            : base(content, pos, height, water) {
+        public Player(ContentManager content, Vector3 pos, Game game, float[,] height, float water, int terrX, int terrZ)
+            : base(content, pos, height, water, terrX, terrZ) {
             //Henter ut en referanse til input-handleren: 
             input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
 
-        public Player(ContentManager content, float[,] height, float water)
-            : base(content, height, water)
+        public Player(ContentManager content, float[,] height, float water, int terrX, int terrZ)
+            : base(content, height, water, terrX, terrZ)
         {
         }
 

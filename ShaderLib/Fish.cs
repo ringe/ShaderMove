@@ -16,6 +16,8 @@ namespace PondLibs
         private const float moveRate = 20.0f;
         protected Vector3 movement = Vector3.Zero;
         private float[,] heightMap;
+        private int terrainX;
+        private int terrainZ;
         private float waterLevel;
 
         private Model fish;
@@ -37,12 +39,17 @@ namespace PondLibs
             get { return position; }
             set {
                 newPos = value;
-                //int x = (int)newPos.X+133;
-                //int z = (int)newPos.Z+133;
-                //if (newPos.Y > waterLevel)
-                //    newPos.Y = waterLevel;
-                //if (newPos.Y < heightMap[x,z])
-                //    newPos.Y = heightMap[x,z];
+                int x = (int)newPos.X;
+                int z = (int)newPos.Z;
+                if (newPos.Y > waterLevel)
+                    newPos.Y = waterLevel;
+                try
+                {
+                    if (newPos.Y < heightMap[x + terrainX / 2, -z + terrainZ / 2])
+                        newPos.Y = heightMap[x + terrainX / 2, -z + terrainZ / 2];
+                }
+                catch { // no problem, we'll kill you outside the terrain later
+                }
                 position = newPos;
             }
         }
@@ -79,9 +86,12 @@ namespace PondLibs
         }
 
         // Constructor for player fish
-        public Fish(ContentManager content, Vector3 pos, float[,] height, float waterL)
+        public Fish(ContentManager content, Vector3 pos, float[,] height, float waterL, int tszX, int tszZ)
         {
-            heightMap = height; waterLevel = waterL;
+            heightMap = height;
+            waterLevel = waterL;
+            terrainX = tszX;
+            terrainZ = tszZ;
 
             // Load models
             fish = content.Load<Model>(@"Content\Sheephead0");
@@ -97,9 +107,12 @@ namespace PondLibs
         }
 
         // Constructor for oppenent fish
-        public Fish(ContentManager content, float[,] height, float waterL)
+        public Fish(ContentManager content, float[,] height, float waterL, int tszX, int tszZ)
         {
-            heightMap = height; waterLevel = waterL;
+            heightMap = height;
+            waterLevel = waterL;
+            terrainX = tszX;
+            terrainZ = tszZ;
             Random r = new Random();
 
             fish = content.Load<Model>(@"Content\Sheephead0");
@@ -114,16 +127,16 @@ namespace PondLibs
             //while (y > waterLevel)
             while (y == 0.0f)
             {
-                x = r.Next(0, 266);
-                z = r.Next(0, 266);
+                x = r.Next(-terrainX / 2, terrainX / 2);
+                z = r.Next(-terrainZ / 2, terrainZ / 2);
 
-                float h = height[x, z];
+                float h = height[x+133, -z+133];
 
                 if (h < waterLevel)
                     y = (waterLevel - h) * (float)r.NextDouble() + h;
             }
 
-            startPos = position = new Vector3(x-133, y, z-133);
+            startPos = position = new Vector3(x, y, z);
             createBoundingSphere();
         }
 
