@@ -118,7 +118,7 @@ namespace FishPond
         //Randomness
         public Random rnd = new Random();
         private SubMarine sub;
-        private bool showHelp;
+        private bool showHelp = true;
         private Texture2D wasdTexture;
         private TimeSpan timeSinceLastHelpRequest;
 
@@ -217,15 +217,6 @@ namespace FishPond
                 new VertexPositionColorTexture(new Vector3(-1, -1,  1),
                     Color.Red, new Vector2(max,min))
             };
-
-            // Surface vertices
-            surfaceVertices = new VertexPositionColorTexture[4]
-            {
-                new VertexPositionColorTexture(new Vector3(-1, waterLevel, -1), Color.Blue, new Vector2(min,max)),
-                new VertexPositionColorTexture(new Vector3( 1, waterLevel, -1), Color.Blue, new Vector2(min,min)),
-                new VertexPositionColorTexture(new Vector3(-1, waterLevel,  1), Color.Blue, new Vector2(max,max)),
-                new VertexPositionColorTexture(new Vector3(1, waterLevel,  1), Color.Blue, new Vector2(max,min))
-            };  
         }
 
         private void SetUpVertices()
@@ -343,8 +334,9 @@ namespace FishPond
             CalculateNormals();
             CopyToBuffers();
 
+            startPosition = new Vector3(0, waterLevel-3, 0);
             // Load Player
-            Player = new Player(content, startPosition, this, heightData, terrainPeak*waterLevel);
+            Player = new Player(content, startPosition, this, heightData, waterLevel);
             fishMatrix = new Matrix[Player.bones.Count];
 
             // Load Opponents
@@ -353,7 +345,7 @@ namespace FishPond
             opponents = new ArrayList();
             for (int i = 0; i < opponentCount; i++)
             {
-                opponents.Add(new Fish(content, heightData, terrainPeak*waterLevel));
+                opponents.Add(new Fish(content, heightData, waterLevel));
                 System.Threading.Thread.Sleep(50);
             }
 
@@ -379,6 +371,19 @@ namespace FishPond
                     terrainPeak = (terrainPeak > point) ? terrainPeak : point;
                     heightData[x, y] = point;
                 }
+
+            // Surface vertices, waterlevel before scale
+            float min = 0.001f; float max = 0.999f;
+            surfaceVertices = new VertexPositionColorTexture[4]
+            {
+                new VertexPositionColorTexture(new Vector3(-1, waterLevel, -1), Color.Blue, new Vector2(min,max)),
+                new VertexPositionColorTexture(new Vector3( 1, waterLevel, -1), Color.Blue, new Vector2(min,min)),
+                new VertexPositionColorTexture(new Vector3(-1, waterLevel,  1), Color.Blue, new Vector2(max,max)),
+                new VertexPositionColorTexture(new Vector3(1, waterLevel,  1), Color.Blue, new Vector2(max,min))
+            };
+
+            // Recalculating waterlevel for real scale
+            waterLevel = terrainPeak * waterLevel;
         }
 
         /// <summary>
@@ -632,23 +637,15 @@ namespace FishPond
                 effectAlpha.SetValue(0.5f);
                 Indices = new int[6] { 0, 1, 2, 2, 1, 3 };
 
-
                 Matrix matIdentify = Matrix.Identity;
-                Matrix scale;
+                Matrix scale = Matrix.CreateScale(terrainWidth, terrainPeak, terrainWidth);
 
-                Matrix.CreateScale(terrainWidth, terrainPeak, terrainWidth, out scale);
-                Matrix matCam = Matrix.CreateTranslation(camera.Position.X, 0.0f, camera.Position.Z);
-
-                world = matIdentify * scale * matCam;
-                //Starter tegning - må bruke effect-objektet:
+                world = matIdentify * scale;
+                // Tegner overflaten
                 foreach (EffectPass pass in surfaceEffect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
-                    // Angir primitivtype, aktuelle vertekser, en offsetverdi og antall 
-                    //  primitiver (her 1 siden verteksene beskriver en tredekant):
                     GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList, surfaceVertices, 0, 4, Indices, 0, 2);
-
-
                 }
             }
             
@@ -826,8 +823,8 @@ namespace FishPond
             // Player is alive and swimming
             if (Player.Alive)
             {
-                //DrawCube(cubeVertices, cloudTexture);
-                //DrawCube(cubeVertices2, texture2);
+                DrawCube(cubeVertices, cloudTexture);
+                DrawCube(cubeVertices2, cloudTexture);
                 //DrawSkyDome();
 
                 // Draw Player and opponents

@@ -86,7 +86,6 @@ namespace PondLibs
             // Load models
             fish = content.Load<Model>(@"Content\Sheephead0");
             fishMatrix = new Matrix[fish.Bones.Count];
-            //rotation = Quaternion.CreateRotationY((float)(Math.PI * 6 / 4));
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             // Set starting size
