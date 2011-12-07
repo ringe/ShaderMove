@@ -978,7 +978,7 @@ namespace FishPond
             if (showHelp)
             {
                 DrawHelpScreen();
-                DrawHeightVsPos();
+                //DrawHeightVsPos();
             }
             else
             {
