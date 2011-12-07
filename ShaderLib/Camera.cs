@@ -16,7 +16,7 @@ namespace PondLibs
     /// </summary>
     public class Camera : Microsoft.Xna.Framework.GameComponent
     {
-        //En referanse til input-komponenten: 
+        //Reference to the input component
         protected IInputHandler input;
         private const float moveRate = 20.0f;      // for FirstPersonCamra. 
         protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
@@ -25,15 +25,15 @@ namespace PondLibs
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
-        private Vector3 cameraPosition = new Vector3(76, 24, 76);
-        private Vector3 cameraTarget = Vector3.Zero;
-        private Vector3 cameraUpVector = Vector3.Up;
+        private Vector3 cameraPosition = new Vector3(76, 24, 76); //Position of the camera
+        private Vector3 cameraTarget = Vector3.Zero; //Target of the camera
+        private Vector3 cameraUpVector = Vector3.Up; //Up vector on the camera
         private Vector3 cameraReference = new Vector3(0, -.3f, -1.0f);
-        private float cameraYaw = 0.0f;
-        private float cameraPitch = 0.0f; 
+        private float cameraYaw = 0.0f; // position of the yaw(sideways tilt)
+        private float cameraPitch = 0.0f; // position of the pitch(tilt)
         private const float spinRate = 40.0f;
 
-        //view og projection-matrisene er tilgjengelig via properties: 
+        //Makes the view- and the projection matrix available trough properties
         public Matrix View
         {
             get { return view; }
@@ -55,7 +55,7 @@ namespace PondLibs
             : base(game)
         {
             graphics = (GraphicsDeviceManager)game.Services.GetService(typeof(IGraphicsDeviceManager));
-            //Henter ut en referanse til input-handleren: 
+            //Reference to the input handeler 
             input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
 
@@ -79,22 +79,13 @@ namespace PondLibs
             cameraTarget = targ;
         }
 
+
         public override void Update(GameTime gameTime)
         {
             //timeDelta = tiden mellom to kall på Update 
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (input.MouseState != input.OriginalMouseState)
-            {
-                float xDifference = input.MouseState.X - input.OriginalMouseState.X;
-                float yDifference = input.MouseState.Y - input.OriginalMouseState.Y;
-                cameraYaw -= xDifference;
-                cameraPitch -= yDifference;
-                //leftrightRot -= rotationSpeed * xDifference * amount;
-                //updownRot -= rotationSpeed * yDifference * amount;
-                Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
-            }
-
+            
+            //Checks for keyboard clicks on left/right
             if (input.KeyboardState.IsKeyDown(Keys.Left))
                 cameraYaw = cameraYaw + (spinRate * timeDelta);
             if (input.KeyboardState.IsKeyDown(Keys.Right))
@@ -105,7 +96,7 @@ namespace PondLibs
             else if (cameraYaw < 0)
                 cameraYaw += 360;
 
-            //OPP/NED (PITCH): 
+            //Checks for keyboard clicks on up/down(pitch)
             if (input.KeyboardState.IsKeyDown(Keys.Down))
                 cameraPitch = cameraPitch - (spinRate * timeDelta);
             if (input.KeyboardState.IsKeyDown(Keys.Up))
@@ -115,40 +106,40 @@ namespace PondLibs
             else if (cameraPitch < -89)
                 cameraPitch = -89;
 
-            // Posisjoner kamera: 
+            // Rotation matrix for the camera
             Matrix rotationMatrix;
 
-            //Rotasjonsmatrise om Y-aksen: 
+            //Rotation matrix around Y
             Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
 
-            //Legger til pitch dvs. rotasjon om X‐aksen:
+            //Rotation matrix around X (pitch)
             rotationMatrix = Matrix.CreateRotationX(MathHelper.ToRadians(cameraPitch)) * rotationMatrix;
 
-            //FirstPersonCamera, endrer kameraets posisjon: 
+            //Change camera position 
             movement *= (moveRate * timeDelta);
             if (movement != Vector3.Zero)
             {
-                //Roterer movement-vektoren: 
+                //Rotates the movement vector
                 Vector3.Transform(ref movement, ref rotationMatrix, out movement);
-                //Oppdaterer kameraposisjonen med move-vektoren:  
+                //Updates the camera position with the move vector
                 cameraPosition += movement;
             }
 
-            // Setter posisjonen til bakkenivå
+            //Sets position at the floor level
             if (heightData != null)
                 cameraPosition.Y = heightData[(int)cameraPosition.X, (int)cameraPosition.Z];
 
-            // Oppretter en vektor som peker i retninga kameraet 'ser': 
+            //Creates a vector to point in the direction of the camera view
             Vector3 transformedReference;
-
-            // Roterer cameraReference-vektoren: 
+ 
+            //Rotates the cameraReference vector
             Vector3.Transform(ref cameraReference, ref rotationMatrix, out transformedReference);
 
-            // Beregner hva kameraet ser på (cameraTarget) vha.  
-            // nåværende posisjonsvektor og retningsvektoren: 
+            //Calculates what the camera is watching on using the position vector and the direction vector
             Vector3.Add(ref cameraPosition, ref transformedReference, out cameraTarget);
 
             //Oppdaterer view-matrisa vha. posisjons, kameramål og opp-vektorene: 
+            //Updates the view matrix using position vector, cameraTarget and up vector.
             Matrix.CreateLookAt(ref cameraPosition, ref cameraTarget, ref cameraUpVector, out view);
 
             base.Update(gameTime);
