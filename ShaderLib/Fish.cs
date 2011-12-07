@@ -123,14 +123,18 @@ namespace PondLibs
             points = r.Next(5, 50);
             size = Matrix.CreateScale(points/10);
 
+            // Get the terrain factors
+            int teX = terrainX / 2;
+            int teZ = terrainZ / 2;
+
             int x = 0, z = 0; float y = 0.0f;
             //while (y > waterLevel)
             while (y == 0.0f)
             {
-                x = r.Next(-terrainX / 2, terrainX / 2);
-                z = r.Next(-terrainZ / 2, terrainZ / 2);
+                x = r.Next(-teX, teX);
+                z = r.Next(-teZ, teZ);
 
-                float h = height[x+133, -z+133];
+                float h = height[x+teX-1, -z+teZ-1];
 
                 if (h < waterLevel)
                     y = (waterLevel - h) * (float)r.NextDouble() + h;
