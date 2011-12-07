@@ -16,8 +16,8 @@ namespace PondLibs
     /// </summary>
     public class Camera : Microsoft.Xna.Framework.GameComponent
     {
-        //Reference to the input component
-        protected IInputHandler input;
+
+        protected IInputHandler input; //Reference to the input component
         private const float moveRate = 20.0f;      // for FirstPersonCamra. 
         protected Vector3 movement = Vector3.Zero; // for FirstPersonCamera.
         protected float[,] heightData; // for FirstPersonCamera
@@ -33,7 +33,7 @@ namespace PondLibs
         private float cameraPitch = 0.0f; // position of the pitch(tilt)
         private const float spinRate = 40.0f;
 
-        //Makes the view- and the projection matrix available trough properties
+        //Makes the view-, projection- and position matrix available trough properties
         public Matrix View
         {
             get { return view; }
@@ -82,10 +82,10 @@ namespace PondLibs
 
         public override void Update(GameTime gameTime)
         {
-            //timeDelta = tiden mellom to kall på Update 
+            //timeDelta = time between two calls on Update
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            
-            //Checks for keyboard clicks on left/right
+
+            //Checks for keyboard clicks on left/right and updates the position
             if (input.KeyboardState.IsKeyDown(Keys.Left))
                 cameraYaw = cameraYaw + (spinRate * timeDelta);
             if (input.KeyboardState.IsKeyDown(Keys.Right))
@@ -96,7 +96,7 @@ namespace PondLibs
             else if (cameraYaw < 0)
                 cameraYaw += 360;
 
-            //Checks for keyboard clicks on up/down(pitch)
+            //Checks for keyboard clicks on up/down(pitch) and updates the pitch
             if (input.KeyboardState.IsKeyDown(Keys.Down))
                 cameraPitch = cameraPitch - (spinRate * timeDelta);
             if (input.KeyboardState.IsKeyDown(Keys.Up))

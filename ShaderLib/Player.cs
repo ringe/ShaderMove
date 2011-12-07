@@ -14,16 +14,16 @@ namespace PondLibs
 {
     public class Player : Fish
     {
-        //En referanse til input-komponenten: 
-        protected IInputHandler input;
+        protected IInputHandler input; //Reference to the input component
         private const float moveRate = 30.0f;
-        private float cameraYaw = 0.0f;
-        private float cameraPitch = 0.0f;
+        private float cameraYaw = 0.0f; // position of the yaw(sideways tilt)
+        private float cameraPitch = 0.0f; // position of the pitch(tilt)
         private const float spinRate = 100.0f;
+
 
         public Player(ContentManager content, Vector3 pos, Game game, float[,] height, float water, int terrX, int terrZ)
             : base(content, pos, height, water, terrX, terrZ) {
-            //Henter ut en referanse til input-handleren: 
+            //Reference to the input handeler 
             input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
 
@@ -34,12 +34,12 @@ namespace PondLibs
 
         public void Update(GameTime gameTime)
         {
-            //timeDelta = tiden mellom to kall på Update 
+            //timeDelta = time between two calls on Update
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (Alive)
             {
-                // update position based on keys
+                //Checks for keyboard clicks on left/right and updates the position
                 movement = Vector3.Zero;
                 if (input.KeyboardState.IsKeyDown(Keys.A))
                     cameraYaw = cameraYaw + (spinRate * timeDelta); //movement.X--;
@@ -56,17 +56,12 @@ namespace PondLibs
                     movement.Y -= cameraPitch / 50;
                 }
 
-                //if (input.KeyboardState.IsKeyDown(Keys.Left))
-                //    cameraYaw = cameraYaw + (spinRate * timeDelta);
-                //if (input.KeyboardState.IsKeyDown(Keys.Right))
-                //    cameraYaw = cameraYaw - (spinRate * timeDelta);
-
                 if (cameraYaw > 360)
                     cameraYaw -= 360;
                 else if (cameraYaw < 0)
                     cameraYaw += 360;
 
-                //OPP/NED (PITCH): 
+                //Checks for keyboard clicks on up/down(pitch) and updates the pitch
                 if (input.KeyboardState.IsKeyDown(Keys.Down))
                     cameraPitch = cameraPitch + (spinRate * timeDelta);
                 if (input.KeyboardState.IsKeyDown(Keys.Up))
@@ -79,26 +74,26 @@ namespace PondLibs
                 if (movement.LengthSquared() != 0)
                     movement.Normalize();
 
-                // Posisjoner kamera: 
+                // Rotation matrix for the camera
                 Matrix rotationMatrix;
 
-                //Rotasjonsmatrise om Y-aksen: 
+                //Rotation matrix around Y 
                 Matrix.CreateRotationY(MathHelper.ToRadians(cameraYaw), out rotationMatrix);
 
-                //Legger til pitch dvs. rotasjon om Z‐aksen:
+                //Rotation matrix around Z (pitch)
                 Rotation = Quaternion.CreateFromRotationMatrix(Matrix.CreateRotationZ(MathHelper.ToRadians(cameraPitch))
                     * rotationMatrix
                     * Matrix.CreateRotationY((float)(Math.PI * 6 / 4))
                     );
 
-                //FirstPersonCamera, endrer kameraets posisjon: 
+                //Change camera position 
                 movement *= (moveRate * timeDelta);
                 if (movement != Vector3.Zero)
                 {
-                    //Roterer movement-vektoren: 
+                    //Rotates the movement vector
                     Vector3.Transform(ref movement, ref rotationMatrix, out movement);
 
-                    //Oppdaterer kameraposisjonen med move-vektoren:  
+                    //Updates the camera position with the move vector  
                     base.pos += movement;
                 }
             }

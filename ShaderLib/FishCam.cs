@@ -19,14 +19,14 @@ namespace PondLibs
         private GraphicsDeviceManager graphics;
         private Matrix projection;
         private Matrix view;
-        private Vector3 cameraPosition = new Vector3(76, 24, 76);
-        private Vector3 cameraTarget = Vector3.Zero;
-        private Vector3 cameraUpVector = Vector3.Up;
+        private Vector3 cameraPosition = new Vector3(76, 24, 76);//Position of the fishCamera
+        private Vector3 cameraTarget = Vector3.Zero;//Target of the fishCamera
+        private Vector3 cameraUpVector = Vector3.Up;//Up vector on the fishCamera
         private Vector3 cameraReference = new Vector3(0, -.2f, -1.0f);
-        private IInputHandler input;
-        private Matrix rotationMatrix;
+        private IInputHandler input; //Reference to the input component
+        private Matrix rotationMatrix;// Rotation matrix for the fishCamera
 
-        //view og projection-matrisene er tilgjengelig via properties: 
+        //Makes the view-, projection-, rotation- and position matrix available trough properties
         public Matrix View
         {
             get { return view; }
@@ -62,7 +62,7 @@ namespace PondLibs
             graphics = (GraphicsDeviceManager)game.Services.GetService(typeof(IGraphicsDeviceManager));
             cameraPosition = pos;
 
-            //Henter ut en referanse til input-handleren: 
+            //Reference to the input handeler  
             input = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
 
@@ -83,10 +83,10 @@ namespace PondLibs
 
         public override void Update(GameTime gameTime)
         {
-            //timeDelta = tiden mellom to kall på Update 
+            //timeDelta = time between two calls on Update
             float timeDelta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            //// Oppretter en vektor som peker i retninga kameraet 'ser': 
+            //Creates a vector to point in the direction of the camera view 
             Vector3 transformedReference;
 
             // Starting position behind the Player
