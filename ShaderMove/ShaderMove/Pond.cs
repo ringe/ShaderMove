@@ -104,7 +104,7 @@ namespace FishPond
 
         // Water
         //private Water water;
-        private List<ParticleExplosion> explosions = new List<ParticleExplosion>();
+        private List<ParticleExplosion> bubbles = new List<ParticleExplosion>();
         private ParticleExplosionSettings particleExplosionSettings = new ParticleExplosionSettings();
         private ParticleSettings particleSettings = new ParticleSettings();
         private Texture2D dropTexture;
@@ -118,6 +118,10 @@ namespace FishPond
         //Randomness
         public Random rnd = new Random();
         private SubMarine sub;
+
+        // Helpstuff
+        private Video video;
+        private VideoPlayer player;
         private bool showHelp = true;
         private Texture2D wasdTexture;
         private TimeSpan timeSinceLastHelpRequest;
@@ -294,6 +298,11 @@ namespace FishPond
         /// </summary>
         protected override void LoadContent()
         {
+            // Load a video, and initialize a player
+            video = Content.Load<Video>(@"Content/welcome");
+            player = new VideoPlayer();
+            player.IsLooped = true;
+
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             spriteFont = Content.Load<SpriteFont>(@"Content\Arial");
@@ -326,7 +335,7 @@ namespace FishPond
             effectPos = surfaceEffect.Parameters["fx_Pos"];
 
             // Load heightmap
-            Texture2D heightMap = Content.Load<Texture2D>(@"Content/mama");
+            Texture2D heightMap = Content.Load<Texture2D>(@"Content/oceanmap");
             LoadHeightData(heightMap);
 
             SetTerrainVertices();
@@ -335,6 +344,7 @@ namespace FishPond
             CopyTerrainToBuffers();
 
             startPosition = new Vector3(0, waterLevel-3, 0);
+
             // Load Player
             Player = new Player(content, startPosition, this, heightData, waterLevel, terrainSizeX, terrainSizeZ);
             fishMatrix = new Matrix[Player.bones.Count];
@@ -343,6 +353,7 @@ namespace FishPond
             Texture2D subT = Content.Load<Texture2D>(@"Content\steel");
             sub = new SubMarine(subT, startPosition);
             opponents = new ArrayList();
+
             for (int i = 0; i < opponentCount; i++)
             {
                 opponents.Add(new Fish(content, heightData, waterLevel, terrainSizeX, terrainSizeZ));
@@ -404,6 +415,10 @@ namespace FishPond
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            // Play the video if it isn't already.
+            if (player.State != MediaState.Playing)
+                player.Play(video);
+
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
@@ -436,13 +451,13 @@ namespace FishPond
         protected void UpdateBubbles(GameTime gameTime)
         {
             // Loop through and update explosions 
-            for (int i = 0; i < explosions.Count; ++i)
+            for (int i = 0; i < bubbles.Count; ++i)
             {
-                explosions[i].Update(gameTime);
+                bubbles[i].Update(gameTime);
                 // If explosion is finished, remove it 
-                if (explosions[i].IsDead)
+                if (bubbles[i].IsDead)
                 {
-                    explosions.RemoveAt(i);
+                    bubbles.RemoveAt(i);
                     --i;
                 }
             }
@@ -450,7 +465,7 @@ namespace FishPond
 
         private void MakeBubbles(Vector3 pos)
         {
-            explosions.Add(new ParticleExplosion(GraphicsDevice,
+            bubbles.Add(new ParticleExplosion(GraphicsDevice,
                pos,
                (rnd.Next(
                    particleExplosionSettings.minLife,
@@ -568,9 +583,21 @@ namespace FishPond
 
         private void DrawHelpScreen()
         {
-            Rectangle retval = new Rectangle(
+            // Nice welcome video
+            Texture2D videoFrame;
+            if (player.State == MediaState.Playing)
+                videoFrame = player.GetTexture();
+            else
+                videoFrame = null;
+
+            Rectangle videoScreen = new Rectangle(
+                GraphicsDevice.Viewport.X + 50,
+                GraphicsDevice.Viewport.Y + 50,
+                GraphicsDevice.Viewport.Width - 100,
+                (GraphicsDevice.Viewport.Height / 2));
+            Rectangle keyScreen = new Rectangle(
                 GraphicsDevice.Viewport.X + GraphicsDevice.Viewport.Width / 3,
-                GraphicsDevice.Viewport.Y + GraphicsDevice.Viewport.Height * 1/ 4,
+                GraphicsDevice.Viewport.Y + GraphicsDevice.Viewport.Height * 3/ 4,
                 wasdTexture.Width,
                 wasdTexture.Height);
 
@@ -584,16 +611,17 @@ namespace FishPond
 
             spriteBatch.Begin();
             // Write header.
+            if (videoFrame != null)
+                spriteBatch.Draw(videoFrame, videoScreen, Color.White);
             spriteBatch.DrawString(spriteFont, helpheader, pos, Color.Black);
             spriteBatch.DrawString(spriteFont, helpheader, new Vector2(pos.X - 1, pos.Y - 1), Color.White);
 
             // Draw keys, write explanation
-            spriteBatch.Draw(wasdTexture, retval, Color.White);
-            pos.X = retval.X;
-            pos.Y = retval.Y + retval.Height + 10;
+            spriteBatch.Draw(wasdTexture, keyScreen, Color.White);
+            pos.X = keyScreen.X;
+            pos.Y = keyScreen.Y - 40;
             spriteBatch.DrawString(spriteFont, helptext, pos, Color.Black);
             spriteBatch.DrawString(spriteFont, helptext, new Vector2(pos.X - 1, pos.Y - 1), Color.White);
-            
             
             spriteBatch.End();
             //Må sette diverse parametre tilbake siden SpriteBatch justerer flere parametre (se Shawn Hargreaves Blog):
@@ -851,8 +879,8 @@ namespace FishPond
 
                 // Draw water
                 DrawSurface();
-                for (int i = 0; i < explosions.Count; i++)
-                    explosions[i].Draw(waterEffect, camera);
+                for (int i = 0; i < bubbles.Count; i++)
+                    bubbles[i].Draw(waterEffect, camera);
             }
             else
             {   // Player died

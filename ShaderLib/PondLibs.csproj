@@ -93,18 +93,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
-    <Compile Include="CModel.cs" />
     <Compile Include="FirstPersonCamera.cs" />
     <Compile Include="Fish.cs" />
     <Compile Include="FishCam.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="Materials\Material.cs" />
-    <Compile Include="Materials\Caustics.cs" />
     <Compile Include="Player.cs" />
-    <Compile Include="PPPointLight.cs" />
-    <Compile Include="PrelightingRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SeaWeed.cs" />
     <Compile Include="Submarine.cs" />
     <Compile Include="Water.cs" />
   </ItemGroup>
