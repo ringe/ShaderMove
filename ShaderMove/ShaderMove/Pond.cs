@@ -103,7 +103,7 @@ namespace FishPond
         private float animFactor;
         private bool animUp;
         private SubMarine subMarine;
-        private int opponentCount = 2;
+        private int opponentCount = 20;
         private ArrayList opponents;
 
         // Water

@@ -134,7 +134,7 @@ namespace PondLibs
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             // Set starting size
-            points = 62;
+            points = 42;
             lastSize = points / 20.0f;
             size = Matrix.CreateScale(lastSize);
 
