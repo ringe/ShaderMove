@@ -117,8 +117,7 @@ namespace PondLibs
         // En teller som angir hvor mye tid som er gått siden starten  
         // på pågående runde.
         int timeSinceLastRound = 0;
-        // Vertex & graphics-info. 
-        VertexDeclaration vertexDeclaration;
+        // Vertex & graphics-info.
         GraphicsDevice graphicsDevice;
         // Texture 
         Vector2 textureSize;

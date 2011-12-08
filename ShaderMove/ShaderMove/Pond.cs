@@ -49,8 +49,6 @@ namespace FishPond
         private FishCam camera; 
 
         // Vertices
-        VertexPositionColorTexture[] cubeVertices;
-        VertexPositionColorTexture[] cubeVertices2;
         VertexPositionColorTexture[] leftV;
         VertexPositionColorTexture[] rightV;
         VertexPositionColorTexture[] backV;
@@ -105,7 +103,7 @@ namespace FishPond
         private float animFactor;
         private bool animUp;
         private SubMarine subMarine;
-        private int opponentCount = 20;
+        private int opponentCount = 2;
         private ArrayList opponents;
 
         // Water
@@ -807,19 +805,21 @@ namespace FishPond
             effectProjection.SetValue(camera.Projection);
 
             Matrix trans = Matrix.CreateTranslation(fish.Position);
-        
+
             //back fin
             fish.bones[24].Transform = Matrix.CreateRotationY(-animFactor);
             //side fins
-            fish.bones[12].Transform = Matrix.CreateRotationY(animFactor/5);
-            fish.bones[9].Transform = Matrix.CreateRotationY(-animFactor/5);
+            fish.bones[12].Transform = Matrix.CreateRotationY(animFactor / 5);
+            fish.bones[9].Transform = Matrix.CreateRotationY(-animFactor / 5);
             //under fins
             fish.bones[15].Transform = Matrix.CreateRotationY(-animFactor);
             fish.bones[18].Transform = Matrix.CreateRotationY(animFactor);
             //whole fish
-            fish.bones[1].Transform = Matrix.CreateRotationY(animFactor/10);
+            fish.bones[1].Transform = Matrix.CreateRotationY(animFactor / 10);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+            fish.CopyAbsoluteBoneTransformsTo(ref fish.fishMatrix);
 
             world *= fish.Scale * Matrix.CreateFromQuaternion(fish.Rotation) * trans;
             fish.World = world;
@@ -832,7 +832,7 @@ namespace FishPond
                     effect.Projection = camera.Projection;
                     effect.EnableDefaultLighting();
                     effect.LightingEnabled = true;
-                    
+
                 }
                 mesh.Draw();
             }
@@ -850,12 +850,12 @@ namespace FishPond
                 {
                     MakeBubbles(fish.Position);
                     opponents.Remove(fish);
-                    if (opponents.Count == 0)
-                        Player.Alive = false;
                 }
                 else
                     DrawFish(fish);
             }
+            if (opponents.Count == 0)
+                Player.Won = true;
         }
 
         // Draw the sky
@@ -987,9 +987,25 @@ namespace FishPond
 
                 // Print score
                 DrawOverlayText(string.Format("Score: {0}", Player.score), 50, 20);
+
+                // Print opponent count
+                DrawOverlayText(string.Format("Opponent: {0}", opponents.Count), 50, 35);
+
+                // Print winner message
+                DrawWinner();
             }
 
             base.Draw(gameTime);
+        }
+
+        // Print winner message
+        private void DrawWinner() {
+            String win = "You are the biggest (and the only) fish in the sea!\nAren't you lonely now? Press (N) for new game.";
+            Vector2 pos = spriteFont.MeasureString(win);
+            pos.X = graphics.GraphicsDevice.Viewport.Height / 2 - (pos.X / 4);
+            pos.Y = graphics.GraphicsDevice.Viewport.Height / 2 - 200;
+            if (Player.Won && Player.Alive)
+                DrawOverlayText(win, (int)pos.X, (int)pos.Y);
         }
 
         public int[] Indices { get; set; }

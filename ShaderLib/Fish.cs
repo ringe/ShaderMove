@@ -24,14 +24,14 @@ namespace PondLibs
         private float waterLevel;
 
         private Model fish;
-        private Matrix[] fishMatrix;
+        public Matrix[] fishMatrix;
         private Matrix size;
         private float lastSize;
         private Vector3 position;
         private Vector3 startPos;
         private Quaternion rotation = Quaternion.Identity;
         private BoundingSphere boundingSphere;
-        Vector3 newPos;
+        private Vector3 newPos;
 
         // Store world between draws for collision detection
         private Matrix world;
@@ -84,6 +84,7 @@ namespace PondLibs
         // Score for Player
         private float points;
         private bool dead;
+        private Boolean winner;
         
         // Show public score and change size when given more points
         public int score { 
@@ -102,7 +103,14 @@ namespace PondLibs
         public Boolean Alive
         {
             get { return !dead; }
-            set { dead = false; }
+            set { dead = value; }
+        }
+
+        // Is this Fish a Winner?
+        public Boolean Won
+        {
+            get { return winner; }
+            set { winner = value; }
         }
 
         // Public access to the rotation variable
@@ -126,7 +134,7 @@ namespace PondLibs
             fish.CopyAbsoluteBoneTransformsTo(fishMatrix);
 
             // Set starting size
-            points = 38;
+            points = 62;
             lastSize = points / 20.0f;
             size = Matrix.CreateScale(lastSize);
 
