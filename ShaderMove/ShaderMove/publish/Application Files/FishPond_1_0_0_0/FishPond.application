@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xrml="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <assemblyIdentity name="FishPond.application" version="1.0.0.0" publicKeyToken="c87afee834f82647" language="neutral" processorArchitecture="x86" xmlns="urn:schemas-microsoft-com:asm.v1" />
+  <description asmv2:publisher="FishPond" asmv2:product="FishPond" xmlns="urn:schemas-microsoft-com:asm.v1" />
+  <deployment install="true" mapFileExtensions="true">
+    <subscription>
+      <update>
+        <beforeApplicationStartup />
+      </update>
+    </subscription>
+    <deploymentProvider codebase="https://github.com/ringe/ShaderMove/tree/master/ShaderMove/publish/FishPond.application" />
+  </deployment>
+  <compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2">
+    <framework targetVersion="4.0" profile="Client" supportedRuntime="4.0.30319" />
+    <framework targetVersion="4.0" profile="Full" supportedRuntime="4.0.30319" />
+  </compatibleFrameworks>
+  <dependency>
+    <dependentAssembly dependencyType="install" codebase="Application Files\FishPond_1_0_0_0\FishPond.exe.manifest" size="18434">
+      <assemblyIdentity name="FishPond.exe" version="1.0.0.0" publicKeyToken="c87afee834f82647" language="neutral" processorArchitecture="x86" type="win32" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>XsSS6mqNE4q574LEtRb67XKRXNo=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+<publisherIdentity name="CN=Heap7\Runar" issuerKeyHash="a4f48d8793b14e9acf01495b54f94d307151218a" /><Signature Id="StrongNameSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>O4cqZ+pwmue0Xhg2sDm9N8VjV9A=</DigestValue></Reference></SignedInfo><SignatureValue>WvVKPkrsqebfty7ROwD8L5e1Z5kCjOoDT5v+6rZ9kUmFDZFR1NHW6qBC4TCmve1+DH89gkioB2gFQhqc/dMxI++8rS48+kf17l+18ZbNLl2WdfkIV2rIZnFhhiHk+TM8wl9jnx67TXzVbFmq3aszdAtv2vU0rgBowmmMzJc6siM=</SignatureValue><KeyInfo Id="StrongNameKeyInfo"><KeyValue><RSAKeyValue><Modulus>q2Mk1qKoKrHanYRXhc0PW2NSW7V1wXEtwp9X23dZ/egNwAB/+X4fbC8z79IGbrhhpYN0irK49JYKRXgoESUSYFi3gplsgyfm/7asDnC7CPHQLx0ViUKhatrc/EODM64a/JvEdLos7V6uhy95q0/Ov899z7lc/20bmu5awyhokQk=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><msrel:RelData xmlns:msrel="http://schemas.microsoft.com/windows/rel/2005/reldata"><r:license xmlns:r="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:as="http://schemas.microsoft.com/windows/pki/2005/Authenticode"><r:grant><as:ManifestInformation Hash="d05763c537bd39b036185eb4e79a70ea672a873b" Description="" Url=""><as:assemblyIdentity name="FishPond.application" version="1.0.0.0" publicKeyToken="c87afee834f82647" language="neutral" processorArchitecture="x86" xmlns="urn:schemas-microsoft-com:asm.v1" /></as:ManifestInformation><as:SignedBy /><as:AuthenticodePublisher><as:X509SubjectName>CN=Heap7\Runar</as:X509SubjectName></as:AuthenticodePublisher></r:grant><r:issuer><Signature Id="AuthenticodeSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>Cgo9ubq4rVCrf77S0A3+pAP3Pc0=</DigestValue></Reference></SignedInfo><SignatureValue>LJxuQHuO3El6YdcdzhytGeIiWk3uGdBx/afQlaP84Oh5dZ02VVuXvq1XtDHvsb07qktEx/evGYTDUban90iZlX7j2tHd1NDCFW0FvVgEA3KcN1smjpVNKZRMfxDnD1G+UXjUtNjuCx3nENZYcTmioFuAO6bHyGulLcOuIz7jfBw=</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>q2Mk1qKoKrHanYRXhc0PW2NSW7V1wXEtwp9X23dZ/egNwAB/+X4fbC8z79IGbrhhpYN0irK49JYKRXgoESUSYFi3gplsgyfm/7asDnC7CPHQLx0ViUKhatrc/EODM64a/JvEdLos7V6uhy95q0/Ov899z7lc/20bmu5awyhokQk=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><X509Data><X509Certificate>MIIBxTCCAS6gAwIBAgIQH9vbKTSTsZpOW/T+h2wqTzANBgkqhkiG9w0BAQUFADAhMR8wHQYDVQQDHhYASABlAGEAcAA3AFwAUgB1AG4AYQByMB4XDTExMTIwOTIyNTUzNVoXDTEyMTIwOTA0NTUzNVowITEfMB0GA1UEAx4WAEgAZQBhAHAANwBcAFIAdQBuAGEAcjCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAq2Mk1qKoKrHanYRXhc0PW2NSW7V1wXEtwp9X23dZ/egNwAB/+X4fbC8z79IGbrhhpYN0irK49JYKRXgoESUSYFi3gplsgyfm/7asDnC7CPHQLx0ViUKhatrc/EODM64a/JvEdLos7V6uhy95q0/Ov899z7lc/20bmu5awyhokQkCAwEAATANBgkqhkiG9w0BAQUFAAOBgQCWQrL7EQAIHu9wdpvP84xx9ncvri8FeKq16r0YEONGEZPReVkwJUgVbpGK+Uy2+KeJjhZHs1TXJXe1Dg6CL+hqlTboTuSQP0RiSB+xcoBW6nQJRflD5W+s0veL85pn3HuMuGB/uynz52/zqc9p5mIIqW1IhZXZqzHOUpzAL9I2KQ==</X509Certificate></X509Data></KeyInfo></Signature></r:issuer></r:license></msrel:RelData></KeyInfo></Signature></asmv1:assembly>
